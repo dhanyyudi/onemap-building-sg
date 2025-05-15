@@ -27,11 +27,13 @@ jobs:
         id: date
         run: echo "date=$(date +'%d%m%Y')" >> $GITHUB_OUTPUT
 
-      - name: Download and process OneMap data
+      - name: Create necessary directories
         run: |
-          # Create logs directory if it doesn't exist
+          mkdir -p data
           mkdir -p logs
 
+      - name: Download and process OneMap data
+        run: |
           # Run download script with logging
           python scripts/onemap_building_download.py \
             --output_file "data/onemap_${{ steps.date.outputs.date }}.csv" \
@@ -61,6 +63,8 @@ jobs:
             data/onemap_${{ steps.date.outputs.date }}.csv
             data/differences_onemap_04042025-${{ steps.date.outputs.date }}.csv
             data/correction_differences_onemap_04042025-${{ steps.date.outputs.date }}.csv
+            data/differences_onemap_04042025-${{ steps.date.outputs.date }}_report.txt
+            data/error_log.txt
             logs/*.log
           retention-days: 30
 
@@ -77,48 +81,77 @@ jobs:
           TIMESTAMP="${{ steps.date.outputs.date }}"
           PREV_DATE="04042025"
 
-          # Create directories if they don't exist
-          mkdir -p data logs
-
           # Check for OneMap data files to commit
           if [ -f "data/onemap_${TIMESTAMP}.csv" ]; then
             # Check if we have a difference file
             DIFF_FILE="data/differences_onemap_${PREV_DATE}-${TIMESTAMP}.csv"
             
+            # Add files individually, making sure they exist first
+            git add "data/onemap_${TIMESTAMP}.csv"
+            echo "Added data/onemap_${TIMESTAMP}.csv"
+            
             if [ -f "$DIFF_FILE" ]; then
-              # Check for corrected difference file
-              CORR_FILE="data/correction_differences_onemap_${PREV_DATE}-${TIMESTAMP}.csv"
-              
-              # Add all relevant files
-              git add "data/onemap_${TIMESTAMP}.csv"
               git add "$DIFF_FILE"
-              git add "logs/*.log"
+              echo "Added $DIFF_FILE"
               
-              if [ -f "$CORR_FILE" ]; then
-                git add "$CORR_FILE"
+              # Add report file if it exists
+              REPORT_FILE="data/differences_onemap_${PREV_DATE}-${TIMESTAMP}_report.txt"
+              if [ -f "$REPORT_FILE" ]; then
+                git add "$REPORT_FILE"
+                echo "Added $REPORT_FILE"
               fi
               
-              # Commit with informative message
+              # Add corrected difference file if it exists
+              CORR_FILE="data/correction_differences_onemap_${PREV_DATE}-${TIMESTAMP}.csv"
+              if [ -f "$CORR_FILE" ]; then
+                git add "$CORR_FILE"
+                echo "Added $CORR_FILE"
+              fi
+            fi
+            
+            # Add error log if it exists
+            if [ -f "data/error_log.txt" ]; then
+              git add "data/error_log.txt"
+              echo "Added data/error_log.txt"
+            fi
+            
+            # Add log files individually (don't use wildcard)
+            for log_file in logs/download_${TIMESTAMP}.log logs/compare_${TIMESTAMP}.log logs/correct_${TIMESTAMP}.log; do
+              if [ -f "$log_file" ]; then
+                git add "$log_file"
+                echo "Added $log_file"
+              fi
+            done
+            
+            # Check git status again
+            echo "======= Git Status After Adding Files ======="
+            git status
+            
+            # Commit with informative message
+            if [ -f "$DIFF_FILE" ]; then
               git commit -m "Update OneMap building data ${TIMESTAMP} with differences from ${PREV_DATE}" || echo "No changes to commit"
             else
-              # Just new data, no previous comparison
-              git add "data/onemap_${TIMESTAMP}.csv"
-              git add "logs/*.log"
               git commit -m "Add new OneMap building data ${TIMESTAMP}" || echo "No changes to commit"
             fi
             
             # Try push
             echo "======= Git Push ======="
-            git push origin main || echo "First push attempt failed"
+            git push origin main
+            
+            # Store the push result
+            PUSH_RESULT=$?
             
             # If push fails, try again with pull-push sequence
-            if [ $? -ne 0 ]; then
+            if [ $PUSH_RESULT -ne 0 ]; then
               echo "First push failed, trying pull-then-push sequence..."
               git pull --rebase origin main || echo "Pull failed"
-              git push origin main || echo "Second push attempt failed"
+              git push origin main
+              
+              # Store the second push result
+              PUSH_RESULT=$?
               
               # If still fails, try with force option as last resort
-              if [ $? -ne 0 ]; then
+              if [ $PUSH_RESULT -ne 0 ]; then
                 echo "Trying force push as fallback..."
                 git push -f origin main || echo "Force push also failed"
               fi

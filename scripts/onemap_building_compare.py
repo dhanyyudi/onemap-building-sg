@@ -10,6 +10,7 @@ import pandas as pd
 import logging
 import argparse
 from datetime import datetime
+import math
 
 # Configure logging
 logging.basicConfig(
@@ -21,10 +22,19 @@ logger = logging.getLogger(__name__)
 class OnemapComparator:
     """Class to compare two OneMap datasets and identify differences"""
     
-    def __init__(self, previous_file, current_file, diff_output=None):
-        """Initialize with paths to previous and current data files"""
+    def __init__(self, previous_file, current_file, diff_output=None, location_threshold=300):
+        """
+        Initialize with paths to previous and current data files.
+        
+        Args:
+            previous_file: Path to previous OneMap dataset CSV
+            current_file: Path to current OneMap dataset CSV
+            diff_output: Path for output differences CSV file
+            location_threshold: Distance threshold in meters to detect location changes (default: 300)
+        """
         self.previous_file = previous_file
         self.current_file = current_file
+        self.location_threshold = location_threshold  # in meters
         
         if diff_output:
             self.diff_output = diff_output
@@ -44,6 +54,30 @@ class OnemapComparator:
             'location_changes': 0,
             'total_changes': 0
         }
+    
+    def calculate_distance(self, lat1, lon1, lat2, lon2):
+        """
+        Calculate the Haversine distance between two points in meters.
+        
+        Args:
+            lat1, lon1: Coordinates of first point
+            lat2, lon2: Coordinates of second point
+            
+        Returns:
+            Distance in meters
+        """
+        # Convert decimal degrees to radians
+        lat1, lon1, lat2, lon2 = map(math.radians, [float(lat1), float(lon1), float(lat2), float(lon2)])
+        
+        # Haversine formula
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+        c = 2 * math.asin(math.sqrt(a))
+        r = 6371000  # Radius of Earth in meters
+        distance = c * r
+        
+        return distance
         
     def load_data(self):
         """Load previous and current datasets"""
@@ -93,6 +127,7 @@ class OnemapComparator:
         changes = pd.DataFrame(columns=self.current_data.columns)
         
         # Check for changes in name or location
+        location_changes_detected = 0
         for key in common_keys:
             prev_row = self.previous_data[self.previous_data['composite_key'] == key].iloc[0]
             curr_row = self.current_data[self.current_data['composite_key'] == key].iloc[0]
@@ -102,18 +137,33 @@ class OnemapComparator:
             
             # Check for location changes (based on lat/lon)
             loc_changed = False
+            distance = 0
+            
             if (not pd.isna(prev_row['lat']) and not pd.isna(curr_row['lat']) and 
                 not pd.isna(prev_row['lon']) and not pd.isna(curr_row['lon'])):
-                lat_diff = abs(float(prev_row['lat']) - float(curr_row['lat']))
-                lon_diff = abs(float(prev_row['lon']) - float(curr_row['lon']))
-                # If location changed by more than 0.0001 degrees (approx. 10m)
-                loc_changed = lat_diff > 0.0001 or lon_diff > 0.0001
+                
+                try:
+                    # Calculate actual distance in meters using Haversine formula
+                    distance = self.calculate_distance(
+                        prev_row['lat'], prev_row['lon'],
+                        curr_row['lat'], curr_row['lon']
+                    )
+                    
+                    # Check if distance exceeds threshold (e.g., 300 meters)
+                    loc_changed = distance > self.location_threshold
+                    
+                    if loc_changed:
+                        location_changes_detected += 1
+                        logger.info(f"Location change detected for {key}: {distance:.2f} meters")
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"Error calculating distance for {key}: {e}")
             
             if name_changed or loc_changed:
                 row_data = curr_row.copy()
                 
                 if name_changed and loc_changed:
                     row_data['change_type'] = 'name_and_location_change'
+                    row_data['location_change_meters'] = distance
                     self.stats['name_changes'] += 1
                     self.stats['location_changes'] += 1
                 elif name_changed:
@@ -121,6 +171,7 @@ class OnemapComparator:
                     self.stats['name_changes'] += 1
                 else:  # loc_changed
                     row_data['change_type'] = 'location_change'
+                    row_data['location_change_meters'] = distance
                     self.stats['location_changes'] += 1
                 
                 # Add previous data values for comparison
@@ -138,7 +189,7 @@ class OnemapComparator:
         logger.info(f"Total differences found: {self.stats['total_changes']}")
         logger.info(f"  - New buildings: {self.stats['new_buildings']}")
         logger.info(f"  - Name changes: {self.stats['name_changes']}")
-        logger.info(f"  - Location changes: {self.stats['location_changes']}")
+        logger.info(f"  - Location changes: {self.stats['location_changes']} (threshold: {self.location_threshold} meters)")
         
         return self.differences
     
@@ -174,7 +225,7 @@ class OnemapComparator:
         report.append(f"Total differences found: {self.stats['total_changes']}")
         report.append(f"  - New buildings: {self.stats['new_buildings']}")
         report.append(f"  - Name changes: {self.stats['name_changes']}")
-        report.append(f"  - Location changes: {self.stats['location_changes']}")
+        report.append(f"  - Location changes: {self.stats['location_changes']} (distance > {self.location_threshold} meters)")
         report.append("")
         report.append("SUMMARY")
         report.append("-" * 50)
@@ -213,11 +264,18 @@ def main():
                         help='Path to current OneMap dataset CSV file')
     parser.add_argument('--diff_output', type=str, default=None,
                         help='Path for output differences CSV file')
+    parser.add_argument('--location_threshold', type=float, default=300.0,
+                        help='Distance threshold in meters to detect location changes (default: 300)')
     
     args = parser.parse_args()
     
     # Create comparator instance
-    comparator = OnemapComparator(args.previous_file, args.current_file, args.diff_output)
+    comparator = OnemapComparator(
+        args.previous_file, 
+        args.current_file, 
+        args.diff_output,
+        args.location_threshold
+    )
     
     # Run the comparison process
     comparator.run()
