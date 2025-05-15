@@ -1,0 +1,23 @@
+2025-05-15 11:41:14,635 - INFO - Loading data from data/differences_onemap_04042025-15052025.csv
+2025-05-15 11:41:14,637 - INFO - Loaded 177 records
+2025-05-15 11:41:14,638 - INFO - Found 0 unique postal codes with duplicates
+2025-05-15 11:41:14,638 - INFO - Total records with duplicate postal codes: 0
+2025-05-15 11:41:14,638 - INFO - Starting deduplication process...
+2025-05-15 11:41:14,638 - INFO - Calculating parent building scores...
+2025-05-15 11:41:14,650 - INFO - Added 177 non-duplicate records to result
+2025-05-15 11:41:14,650 - INFO - Selected 0 parent buildings from duplicate groups
+2025-05-15 11:41:14,650 - INFO - Total records in deduplicated dataset: 177
+2025-05-15 11:41:14,651 - INFO - Applying naming conventions...
+2025-05-15 11:41:14,681 - INFO - Classified buildings: 132 residential, 45 non-residential
+2025-05-15 11:41:14,694 - INFO - Naming conventions applied successfully
+2025-05-15 11:41:14,698 - INFO - Corrected dataset saved to data/correction_differences_onemap_04042025-15052025.csv
+2025-05-15 11:41:14,698 - INFO - ==================================================
+2025-05-15 11:41:14,698 - INFO - CORRECTION SUMMARY
+2025-05-15 11:41:14,698 - INFO - ==================================================
+2025-05-15 11:41:14,698 - INFO - Original records: 177
+2025-05-15 11:41:14,698 - INFO - Corrected records: 177
+2025-05-15 11:41:14,698 - INFO - Records removed: 0 (0.00%)
+2025-05-15 11:41:14,698 - INFO - Residential buildings: 132 (74.58%)
+2025-05-15 11:41:14,698 - INFO - Non-residential buildings: 45 (25.42%)
+2025-05-15 11:41:14,698 - INFO - ==================================================
+2025-05-15 11:41:14,698 - INFO - Complete correction process finished in 0.06 seconds
