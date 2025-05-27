@@ -1,0 +1,2 @@
+Error with postal code 148566: HTTP 502
+Error with postal code 213328: Server disconnected
