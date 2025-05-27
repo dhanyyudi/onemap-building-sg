@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-OneMap SG Building Correction Script
+Enhanced OneMap SG Building Correction Script
 
 This script processes the differences file to:
 1. Remove duplicate postal codes
 2. Apply consistent naming conventions
+3. Exclude buildings under construction (u/c) and temporary site offices
+4. Generate user-friendly summary files for Slack integration
 """
 
 import pandas as pd
@@ -12,7 +14,10 @@ import re
 import logging
 import argparse
 import time
+import json
+import os
 from collections import Counter
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -21,8 +26,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-class BuildingCorrector:
-    """Class to deduplicate and correct naming conventions for building data"""
+class EnhancedBuildingCorrector:
+    """Enhanced class to deduplicate and correct naming conventions for building data"""
     
     def __init__(self, input_file, output_file):
         """Initialize with input and output file paths"""
@@ -30,9 +35,60 @@ class BuildingCorrector:
         self.output_file = output_file
         self.df = None
         self.result_df = None
+        self.excluded_df = None
         self.duplicate_postal_codes = []
+        self.stats = {
+            'original_records': 0,
+            'excluded_records': 0,
+            'final_records': 0,
+            'residential_count': 0,
+            'non_residential_count': 0,
+            'corrections_applied': 0,
+            'duplicates_removed': 0
+        }
         
-        # Define regex patterns for analysis
+        # Define exclusion patterns for under construction and temporary buildings
+        self.exclusion_patterns = [
+            # Under construction patterns
+            r'\b(?:u/c|under construction|under const)\b',
+            r'\bunconstructed\b',
+            r'\bconstruction site\b',
+            r'\bbuilding under construction\b',
+            
+            # Temporary site office patterns
+            r'\btemporary site office\b',
+            r'\btemp site office\b',
+            r'\bsite office\b',
+            r'\btemporary office\b',
+            r'\bconstruction office\b',
+            r'\bcontractor office\b',
+            r'\bproject office\b',
+            
+            # Sales office patterns (often temporary)
+            r'\bsales office\b',
+            r'\bsales gallery\b',
+            r'\bsales centre\b',
+            r'\bsales center\b',
+            
+            # Other temporary structures
+            r'\btemporary structure\b',
+            r'\btemporary building\b',
+            r'\bportable cabin\b',
+            r'\bsite cabin\b',
+            r'\btemporary facility\b',
+            r'\bmobile office\b',
+            
+            # Construction-related keywords
+            r'\bhoardings?\b',
+            r'\bfencing\b',
+            r'\bbarricade\b',
+            r'\bscaffolding\b'
+        ]
+        
+        # Compile exclusion patterns
+        self.exclusion_regexes = [re.compile(pattern, re.IGNORECASE) for pattern in self.exclusion_patterns]
+        
+        # Define regex patterns for analysis (existing patterns)
         self.non_parent_blk_patterns = [
             r'[0-9]+-[0-9]+',         # Range format like "1-5"
             r'[0-9]+[A-Za-z]+',       # Number followed by letter like "123A"
@@ -56,7 +112,7 @@ class BuildingCorrector:
             r'\b(?:Hotel|Resort|Apartment|Condo|Condominium)\b'
         ]
         
-        # Define non-residential patterns
+        # Define non-residential patterns (existing patterns)
         self.non_residential_patterns = [
             # Schools & Education
             r'(school|college|university|institute|polytechnic|campus|kindergarten|preschool|childcare|tuition|academy|training|education|learning|nursery|montessori|international school)',
@@ -101,7 +157,7 @@ class BuildingCorrector:
         # Compile patterns
         self.non_residential_regexes = [re.compile(pattern, re.IGNORECASE) for pattern in self.non_residential_patterns]
         
-        # Singapore abbreviations
+        # Singapore abbreviations (existing)
         self.singapore_abbreviations = {
             # Transport
             'MRT': 'Mass Rapid Transit',
@@ -133,7 +189,7 @@ class BuildingCorrector:
             'SUSS': 'Singapore University of Social Sciences',
         }
         
-        # Define strong non-residential indicators
+        # Define strong non-residential indicators (existing)
         self.strong_non_residential_indicators = [
             'school', 'college', 'university', 'hospital', 'mall', 'plaza', 'centre', 'center', 
             'hotel', 'station', 'interchange', 'terminal', 'park', 'carpark', 'multi-storey',
@@ -141,37 +197,96 @@ class BuildingCorrector:
             'library', 'theatre', 'cinema', 'office', 'bank', 'restaurant', 'shop', 'store'
         ]
     
+    def should_exclude_building(self, row):
+        """
+        Check if a building should be excluded based on construction status or temporary nature.
+        
+        Args:
+            row: DataFrame row containing building data
+            
+        Returns:
+            Boolean: True if building should be excluded, False otherwise
+        """
+        # Combine all text fields for comprehensive checking
+        text_fields = []
+        
+        for field in ['name', 'street', 'blk_no']:
+            if pd.notna(row[field]) and str(row[field]).strip():
+                text_fields.append(str(row[field]).strip())
+        
+        combined_text = ' '.join(text_fields).lower()
+        
+        # Check against exclusion patterns
+        for regex in self.exclusion_regexes:
+            if regex.search(combined_text):
+                return True
+        
+        return False
+    
     def load_data(self):
         """Load the dataset and prepare for processing"""
         logger.info(f"Loading data from {self.input_file}")
         try:
             self.df = pd.read_csv(self.input_file)
-            logger.info(f"Loaded {len(self.df)} records")
+            self.stats['original_records'] = len(self.df)
+            logger.info(f"Loaded {self.stats['original_records']} records")
             
             # Ensure postal_code is string type
             self.df['postal_code'] = self.df['postal_code'].astype(str)
-            
-            # Find duplicate postal codes
-            duplicates = self.df['postal_code'].duplicated(keep=False)
-            self.duplicate_postal_codes = self.df[duplicates]['postal_code'].unique()
-            
-            logger.info(f"Found {len(self.duplicate_postal_codes)} unique postal codes with duplicates")
-            logger.info(f"Total records with duplicate postal codes: {sum(duplicates)}")
             
             return True
         except Exception as e:
             logger.error(f"Error loading data: {e}")
             return False
     
+    def exclude_construction_and_temporary(self):
+        """
+        Filter out buildings under construction and temporary site offices.
+        """
+        logger.info("Filtering out buildings under construction and temporary site offices...")
+        
+        # Create exclusion mask
+        exclusion_mask = self.df.apply(self.should_exclude_building, axis=1)
+        
+        # Separate excluded and included records
+        self.excluded_df = self.df[exclusion_mask].copy()
+        self.df = self.df[~exclusion_mask].copy()
+        
+        self.stats['excluded_records'] = len(self.excluded_df)
+        logger.info(f"Excluded {self.stats['excluded_records']} buildings (under construction/temporary)")
+        logger.info(f"Remaining records for processing: {len(self.df)}")
+        
+        # Log some examples of excluded buildings
+        if not self.excluded_df.empty:
+            logger.info("Examples of excluded buildings:")
+            for idx, row in self.excluded_df.head(5).iterrows():
+                name = str(row.get('name', 'N/A'))
+                street = str(row.get('street', 'N/A'))
+                postal = str(row.get('postal_code', 'N/A'))
+                logger.info(f"  - {postal}: {name} at {street}")
+        
+        # Save excluded records for reference
+        if not self.excluded_df.empty:
+            excluded_file = self.output_file.replace('.csv', '_excluded.csv')
+            self.excluded_df.to_csv(excluded_file, index=False)
+            logger.info(f"Excluded records saved to {excluded_file}")
+        
+        return True
+    
+    def find_duplicates(self):
+        """Find duplicate postal codes after exclusion"""
+        duplicates = self.df['postal_code'].duplicated(keep=False)
+        self.duplicate_postal_codes = self.df[duplicates]['postal_code'].unique()
+        
+        logger.info(f"Found {len(self.duplicate_postal_codes)} unique postal codes with duplicates")
+        logger.info(f"Total records with duplicate postal codes: {sum(duplicates)}")
+        
+        return True
+    
     def is_parent_building_blk(self, blk_no):
         """
         Check if the block number indicates a parent building.
-        
-        Args:
-            blk_no: The block number to check
-            
-        Returns:
-            Boolean and score: (is_parent, score)
+        (Existing implementation)
         """
         if pd.isna(blk_no) or blk_no == '':
             return (False, 0)
@@ -185,8 +300,6 @@ class BuildingCorrector:
         
         # Check if it's a simple numeric block (parent indicator)
         if re.match(r'^[0-9]+$', blk_str):
-            # Simple numeric blocks are likely parent buildings
-            # Lower numbers get higher scores
             try:
                 num = int(blk_str)
                 if num < 10:
@@ -203,12 +316,7 @@ class BuildingCorrector:
     def is_parent_building_name(self, name):
         """
         Check if the building name indicates a parent building.
-        
-        Args:
-            name: The building name to check
-            
-        Returns:
-            Boolean and score: (is_parent, score)
+        (Existing implementation)
         """
         if pd.isna(name) or name == '':
             return (False, 0)
@@ -234,7 +342,7 @@ class BuildingCorrector:
     def calculate_parent_building_score(self, row):
         """
         Calculate a score indicating how likely this record represents a parent building.
-        Higher scores indicate higher likelihood of being a parent building.
+        (Existing implementation)
         """
         score = 0
         
@@ -294,6 +402,8 @@ class BuildingCorrector:
         
         # Process each duplicate group
         selected_from_duplicates = 0
+        duplicates_removed = 0
+        
         for group in duplicate_groups:
             # Sort by parent score (descending)
             group = group.sort_values('parent_score', ascending=False)
@@ -302,8 +412,11 @@ class BuildingCorrector:
             selected_record = group.iloc[0].drop('parent_score')
             result_df = pd.concat([result_df, pd.DataFrame([selected_record])], ignore_index=True)
             selected_from_duplicates += 1
+            duplicates_removed += len(group) - 1
         
+        self.stats['duplicates_removed'] = duplicates_removed
         logger.info(f"Selected {selected_from_duplicates} parent buildings from duplicate groups")
+        logger.info(f"Removed {duplicates_removed} duplicate records")
         logger.info(f"Total records in deduplicated dataset: {len(result_df)}")
         
         self.result_df = result_df
@@ -501,6 +614,10 @@ class BuildingCorrector:
         # Count residential vs non-residential
         non_residential_count = self.result_df['is_non_residential'].sum()
         residential_count = len(self.result_df) - non_residential_count
+        
+        self.stats['non_residential_count'] = non_residential_count
+        self.stats['residential_count'] = residential_count
+        
         logger.info(f"Classified buildings: {residential_count} residential, {non_residential_count} non-residential")
         
         # Format names and addresses
@@ -510,58 +627,224 @@ class BuildingCorrector:
         logger.info("Naming conventions applied successfully")
         return self.result_df
     
+    def generate_summary_files(self):
+        """Generate user-friendly summary files for Slack integration"""
+        logger.info("Generating summary files for Slack integration...")
+        
+        current_date = datetime.now().strftime("%d%m%Y")
+        readable_date = datetime.now().strftime("%d_%m_%Y")
+        
+        try:
+            # 1. Generate new buildings summary (if any new buildings)
+            if 'change_type' in self.result_df.columns:
+                new_buildings = self.result_df[self.result_df['change_type'] == 'new_building'].copy()
+                
+                if not new_buildings.empty:
+                    new_buildings_summary = new_buildings[['postal_code', 'name_formatted', 'address_formatted', 'is_non_residential']].copy()
+                    new_buildings_summary.columns = ['Postal Code', 'Building Name', 'Full Address', 'Non-Residential']
+                    new_buildings_summary['Date Added'] = readable_date.replace('_', '/')
+                    
+                    new_buildings_file = f"data/new_buildings_{readable_date}.csv"
+                    new_buildings_summary.to_csv(new_buildings_file, index=False)
+                    logger.info(f"Generated new buildings summary: {new_buildings_file}")
+            
+            # 2. Generate changes summary
+            if 'change_type' in self.result_df.columns:
+                changes_summary = []
+                
+                for change_type in ['new_building', 'name_change', 'location_change', 'name_and_location_change']:
+                    subset = self.result_df[self.result_df['change_type'] == change_type]
+                    if not subset.empty:
+                        for _, row in subset.iterrows():
+                            summary_row = {
+                                'Change Type': change_type.replace('_', ' ').title(),
+                                'Postal Code': row['postal_code'],
+                                'Building Name': row['name_formatted'],
+                                'Address': row['address_formatted'],
+                                'Building Type': 'Non-Residential' if row['is_non_residential'] else 'Residential',
+                                'Date Processed': readable_date.replace('_', '/')
+                            }
+                            
+                            # Add previous values for changes
+                            if 'prev_name' in row and pd.notna(row['prev_name']):
+                                summary_row['Previous Name'] = row['prev_name']
+                            if 'location_change_meters' in row and pd.notna(row['location_change_meters']):
+                                summary_row['Location Change (meters)'] = f"{row['location_change_meters']:.2f}"
+                            
+                            changes_summary.append(summary_row)
+                
+                if changes_summary:
+                    changes_df = pd.DataFrame(changes_summary)
+                    changes_file = f"data/building_changes_summary_{readable_date}.csv"
+                    changes_df.to_csv(changes_file, index=False)
+                    logger.info(f"Generated changes summary: {changes_file}")
+            
+            # 3. Generate statistics summary
+            stats_summary = {
+                'Metric': [
+                    'Original Records',
+                    'Excluded Records (Under Construction/Temporary)',
+                    'Final Records After Processing',
+                    'Residential Buildings',
+                    'Non-Residential Buildings',
+                    'Duplicate Records Removed',
+                    'Exclusion Rate (%)',
+                    'Processing Date'
+                ],
+                'Value': [
+                    self.stats['original_records'],
+                    self.stats['excluded_records'],
+                    len(self.result_df) if self.result_df is not None else 0,
+                    self.stats['residential_count'],
+                    self.stats['non_residential_count'],
+                    self.stats['duplicates_removed'],
+                    f"{(self.stats['excluded_records'] / self.stats['original_records'] * 100):.2f}" if self.stats['original_records'] > 0 else "0.00",
+                    readable_date.replace('_', '/')
+                ]
+            }
+            
+            stats_df = pd.DataFrame(stats_summary)
+            stats_file = f"data/processing_statistics_{readable_date}.csv"
+            stats_df.to_csv(stats_file, index=False)
+            logger.info(f"Generated statistics summary: {stats_file}")
+            
+            # 4. Generate text summary for easy reading
+            text_summary = f"""OneMap Building Data Processing Summary - {readable_date.replace('_', '/')}
+===============================================================
+
+PROCESSING STATISTICS
+---------------------
+Original Records: {self.stats['original_records']:,}
+Excluded Records: {self.stats['excluded_records']:,} (Under construction/Temporary)
+Final Records: {len(self.result_df) if self.result_df is not None else 0:,}
+Duplicates Removed: {self.stats['duplicates_removed']:,}
+
+BUILDING CLASSIFICATION
+-----------------------
+Residential Buildings: {self.stats['residential_count']:,}
+Non-Residential Buildings: {self.stats['non_residential_count']:,}
+
+EXCLUSION CRITERIA
+------------------
+Buildings excluded include:
+• Under construction (u/c) buildings
+• Temporary site offices
+• Construction-related structures
+• Sales offices and galleries
+• Mobile offices and portable cabins
+
+FILES GENERATED
+---------------
+• corrected_differences_onemap_*.csv - Main processed dataset
+• new_buildings_*.csv - Summary of new buildings (if any)
+• building_changes_summary_*.csv - All changes summary
+• processing_statistics_*.csv - Processing metrics
+• excluded_buildings_*.csv - Excluded buildings reference
+
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+"""
+            
+            text_file = f"data/processing_summary_{readable_date}.txt"
+            with open(text_file, 'w', encoding='utf-8') as f:
+                f.write(text_summary)
+            logger.info(f"Generated text summary: {text_file}")
+            
+            # 5. Generate JSON metadata for Slack integration
+            metadata = {
+                'processing_date': readable_date.replace('_', '/'),
+                'stats': self.stats.copy(),
+                'final_count': len(self.result_df) if self.result_df is not None else 0,
+                'files_generated': [
+                    f"corrected_differences_onemap_{current_date}.csv",
+                    f"new_buildings_{readable_date}.csv",
+                    f"building_changes_summary_{readable_date}.csv", 
+                    f"processing_statistics_{readable_date}.csv",
+                    f"processing_summary_{readable_date}.txt"
+                ],
+                'exclusion_examples': []
+            }
+            
+            # Add some exclusion examples
+            if self.excluded_df is not None and not self.excluded_df.empty:
+                for _, row in self.excluded_df.head(3).iterrows():
+                    metadata['exclusion_examples'].append({
+                        'postal_code': str(row.get('postal_code', 'N/A')),
+                        'name': str(row.get('name', 'N/A')),
+                        'street': str(row.get('street', 'N/A'))
+                    })
+            
+            metadata_file = f"data/processing_metadata_{readable_date}.json"
+            with open(metadata_file, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, indent=2, ensure_ascii=False)
+            logger.info(f"Generated metadata file: {metadata_file}")
+            
+        except Exception as e:
+            logger.error(f"Error generating summary files: {e}")
+    
     def save_result(self):
         """Save the corrected dataset to CSV file"""
         if self.result_df is None:
             raise ValueError("No result data available. Run the process first.")
-            
+        
+        self.stats['final_records'] = len(self.result_df)
+        
         # Save to CSV
         self.result_df.to_csv(self.output_file, index=False)
         logger.info(f"Corrected dataset saved to {self.output_file}")
         
         # Generate a summary of the corrections
-        total_original = len(self.df) if self.df is not None else 0
-        total_corrected = len(self.result_df)
+        total_original = self.stats['original_records']
+        total_corrected = self.stats['final_records']
         
-        logger.info("=" * 50)
-        logger.info("CORRECTION SUMMARY")
-        logger.info("=" * 50)
-        logger.info(f"Original records: {total_original}")
-        logger.info(f"Corrected records: {total_corrected}")
+        logger.info("=" * 60)
+        logger.info("ENHANCED CORRECTION SUMMARY")
+        logger.info("=" * 60)
+        logger.info(f"Original records: {total_original:,}")
+        logger.info(f"Excluded records: {self.stats['excluded_records']:,} ({self.stats['excluded_records']/total_original*100:.2f}%)")
+        logger.info(f"Corrected records: {total_corrected:,}")
+        logger.info(f"Duplicates removed: {self.stats['duplicates_removed']:,}")
         
         if total_original > 0:
-            logger.info(f"Records removed: {total_original - total_corrected} ({(total_original - total_corrected)/total_original*100:.2f}%)")
+            net_reduction = total_original - total_corrected
+            logger.info(f"Net records reduction: {net_reduction:,} ({net_reduction/total_original*100:.2f}%)")
         
-        if 'is_non_residential' in self.result_df.columns:
-            non_residential_count = self.result_df['is_non_residential'].sum()
-            residential_count = len(self.result_df) - non_residential_count
-            logger.info(f"Residential buildings: {residential_count} ({residential_count/len(self.result_df)*100:.2f}%)")
-            logger.info(f"Non-residential buildings: {non_residential_count} ({non_residential_count/len(self.result_df)*100:.2f}%)")
-        
-        logger.info("=" * 50)
+        logger.info(f"Residential buildings: {self.stats['residential_count']:,} ({self.stats['residential_count']/total_corrected*100:.2f}%)")
+        logger.info(f"Non-residential buildings: {self.stats['non_residential_count']:,} ({self.stats['non_residential_count']/total_corrected*100:.2f}%)")
+        logger.info("=" * 60)
         
         return True
     
     def run(self):
-        """Run the entire correction process"""
+        """Run the entire enhanced correction process"""
         start_time = time.time()
         
         if not self.load_data():
             logger.error("Failed to load data. Aborting.")
             return False
         
+        # New: Filter out construction and temporary buildings
+        self.exclude_construction_and_temporary()
+        
+        # Find duplicates after exclusion
+        self.find_duplicates()
+        
+        # Existing processes
         self.deduplicate()
         self.apply_naming_conventions()
+        
+        # New: Generate summary files for Slack integration
+        self.generate_summary_files()
+        
         self.save_result()
         
         elapsed_time = time.time() - start_time
-        logger.info(f"Complete correction process finished in {elapsed_time:.2f} seconds")
+        logger.info(f"Enhanced correction process completed in {elapsed_time:.2f} seconds")
         
         return True
 
 def main():
     """Main function to handle command line arguments and execute correction process"""
-    parser = argparse.ArgumentParser(description='Deduplicate and correct naming conventions for building data')
+    parser = argparse.ArgumentParser(description='Enhanced building data correction with construction filtering and Slack integration')
     parser.add_argument('--input_file', type=str, required=True,
                         help='Path to input differences CSV file')
     parser.add_argument('--output_file', type=str, required=True,
@@ -569,11 +852,17 @@ def main():
     
     args = parser.parse_args()
     
-    # Create corrector instance
-    corrector = BuildingCorrector(args.input_file, args.output_file)
+    # Create enhanced corrector instance
+    corrector = EnhancedBuildingCorrector(args.input_file, args.output_file)
     
-    # Run the correction process
-    corrector.run()
+    # Run the enhanced correction process
+    success = corrector.run()
+    
+    if success:
+        logger.info("✅ Enhanced correction process completed successfully!")
+    else:
+        logger.error("❌ Enhanced correction process failed!")
+        exit(1)
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,36 @@
+{
+  "text": "❌ OneMap Building Processing Failed (TEST)",
+  "attachments": [
+    {
+      "color": "danger",
+      "title": "🚨 Enhanced Workflow Failure (TEST DATA)",
+      "text": "The enhanced OneMap building data processing workflow has failed. This includes download, comparison, correction with construction filtering, and Slack integration.",
+      "fields": [
+        {
+          "title": "Failure Time",
+          "value": "2025-05-27 21:43:55 UTC",
+          "short": true
+        },
+        {
+          "title": "Scheduled Run",
+          "value": "15th of each month",
+          "short": true
+        }
+      ],
+      "actions": [
+        {
+          "type": "button",
+          "text": "🔍 Check Workflow Logs",
+          "url": "https://github.com/your-repo/onemap-building-sg/actions",
+          "style": "danger"
+        },
+        {
+          "type": "button",
+          "text": "📂 View Repository",
+          "url": "https://github.com/your-repo/onemap-building-sg",
+          "style": "default"
+        }
+      ]
+    }
+  ]
+}

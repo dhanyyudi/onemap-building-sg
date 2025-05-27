@@ -1,0 +1,145 @@
+{
+  "text": "🏢 OneMap Building Data Processing Complete (TEST)",
+  "attachments": [
+    {
+      "color": "warning",
+      "title": "⚠️ OneMap Building Processing - Minor Changes (TEST DATA)",
+      "fields": [
+        {
+          "title": "📅 Processing Period",
+          "value": "*15/04/2025* → *27/05/2025*",
+          "short": false
+        },
+        {
+          "title": "📊 Total Processed",
+          "value": "142,500",
+          "short": true
+        },
+        {
+          "title": "🏗️ Excluded (Construction)",
+          "value": "1,250 (0.9%)",
+          "short": true
+        },
+        {
+          "title": "🏢 Final Buildings",
+          "value": "141,250",
+          "short": true
+        },
+        {
+          "title": "🔄 Duplicates Removed",
+          "value": "450",
+          "short": true
+        },
+        {
+          "title": "🏠 Residential",
+          "value": "105,000",
+          "short": true
+        },
+        {
+          "title": "🏢 Non-Residential",
+          "value": "36,250",
+          "short": true
+        }
+      ],
+      "actions": [
+        {
+          "type": "button",
+          "text": "📊 Main Dataset (141,250)",
+          "url": "https://github.com/your-repo/onemap-building-sg/raw/main/data/correction_differences_onemap_15052025.csv",
+          "style": "primary"
+        },
+        {
+          "type": "button",
+          "text": "🆕 New Buildings (25)",
+          "url": "https://github.com/your-repo/onemap-building-sg/raw/main/data/new_buildings_15_05_2025.csv",
+          "style": "good"
+        },
+        {
+          "type": "button",
+          "text": "📋 All Changes (177)",
+          "url": "https://github.com/your-repo/onemap-building-sg/raw/main/data/building_changes_summary_15_05_2025.csv",
+          "style": "default"
+        },
+        {
+          "type": "button",
+          "text": "📈 Statistics Report",
+          "url": "https://github.com/your-repo/onemap-building-sg/raw/main/data/processing_statistics_15_05_2025.csv",
+          "style": "default"
+        },
+        {
+          "type": "button",
+          "text": "🚫 Excluded (1,250)",
+          "url": "https://github.com/your-repo/onemap-building-sg/raw/main/data/correction_differences_onemap_15052025_excluded.csv",
+          "style": "default"
+        },
+        {
+          "type": "button",
+          "text": "📂 Repository",
+          "url": "https://github.com/your-repo/onemap-building-sg",
+          "style": "default"
+        }
+      ],
+      "footer": "OneMap SG Building Collection | Enhanced with construction filtering",
+      "ts": 1748357027
+    },
+    {
+      "color": "#3498db",
+      "title": "📋 Changes Detected",
+      "fields": [
+        {
+          "title": "🆕 New Buildings",
+          "value": "25",
+          "short": true
+        },
+        {
+          "title": "✏️ Name Changes",
+          "value": "142",
+          "short": true
+        },
+        {
+          "title": "📍 Location Changes",
+          "value": "10",
+          "short": true
+        },
+        {
+          "title": "📊 Total Changes",
+          "value": "177",
+          "short": true
+        }
+      ]
+    },
+    {
+      "color": "#2ecc71",
+      "title": "🆕 New Buildings Sample",
+      "text": "`018501` Tampines Exchange - Tampines Central 1\n`520101` Block 101 Toa Payoh Lorong 1\n`730456` Woodlands Regional Centre - Woodlands Ave 2\n`440567` Block 567 Clementi Ave 3\n`160789` Block 789 Bukit Merah Central\n... and 20 more",
+      "footer": "Click 'New Buildings' button above to download complete list"
+    },
+    {
+      "color": "#e74c3c",
+      "title": "🚫 Construction/Temporary Buildings Excluded",
+      "fields": [
+        {
+          "title": "Excluded Count",
+          "value": "1,250 buildings (0.9%)",
+          "short": true
+        },
+        {
+          "title": "Exclusion Criteria",
+          "value": "• Under construction (u/c)\n• Temporary site offices\n• Construction structures\n• Sales offices/galleries",
+          "short": true
+        },
+        {
+          "title": "Examples Excluded",
+          "value": "`123456` Construction Site Office\n`789012` Temporary Sales Gallery\n`345678` Building Under Construction",
+          "short": false
+        }
+      ]
+    },
+    {
+      "color": "#9b59b6",
+      "title": "📊 Download Information",
+      "text": "📥 **Available Downloads:**\n• **Main Dataset**: 141,250 processed buildings\n• **New Buildings**: 25 newly discovered\n• **Changes Summary**: 177 modifications\n• **Excluded Buildings**: 1,250 filtered out\n• **Statistics Report**: Processing metrics\n• **Summary Report**: Human-readable overview",
+      "footer": "All files are automatically generated and ready for download"
+    }
+  ]
+}
