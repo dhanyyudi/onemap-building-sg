@@ -750,10 +750,32 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             logger.info(f"Generated text summary: {text_file}")
             
             # 5. Generate JSON metadata for Slack integration
+            # Convert numpy types to Python native types to avoid JSON serialization errors
+            def convert_numpy_types(obj):
+                """Convert numpy types to Python native types for JSON serialization"""
+                import numpy as np
+                if isinstance(obj, dict):
+                    return {k: convert_numpy_types(v) for k, v in obj.items()}
+                elif isinstance(obj, list):
+                    return [convert_numpy_types(v) for v in obj]
+                elif isinstance(obj, (np.integer, np.int64, np.int32)):
+                    return int(obj)
+                elif isinstance(obj, (np.floating, np.float64, np.float32)):
+                    return float(obj)
+                elif isinstance(obj, np.bool_):
+                    return bool(obj)
+                elif isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                else:
+                    return obj
+            
+            # Create metadata with proper type conversion
+            safe_stats = convert_numpy_types(self.stats.copy())
+            
             metadata = {
                 'processing_date': readable_date.replace('_', '/'),
-                'stats': self.stats.copy(),
-                'final_count': len(self.result_df) if self.result_df is not None else 0,
+                'stats': safe_stats,
+                'final_count': int(len(self.result_df)) if self.result_df is not None else 0,
                 'files_generated': [
                     f"corrected_differences_onemap_{current_date}.csv",
                     f"new_buildings_{readable_date}.csv",
@@ -764,7 +786,7 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                 'exclusion_examples': []
             }
             
-            # Add some exclusion examples
+            # Add some exclusion examples with safe type conversion
             if self.excluded_df is not None and not self.excluded_df.empty:
                 for _, row in self.excluded_df.head(3).iterrows():
                     metadata['exclusion_examples'].append({
@@ -774,9 +796,36 @@ Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                     })
             
             metadata_file = f"data/processing_metadata_{readable_date}.json"
-            with open(metadata_file, 'w', encoding='utf-8') as f:
-                json.dump(metadata, f, indent=2, ensure_ascii=False)
-            logger.info(f"Generated metadata file: {metadata_file}")
+            
+            try:
+                with open(metadata_file, 'w', encoding='utf-8') as f:
+                    json.dump(metadata, f, indent=2, ensure_ascii=False)
+                logger.info(f"Generated metadata file: {metadata_file}")
+                
+                # Validate the JSON file was written correctly
+                with open(metadata_file, 'r', encoding='utf-8') as f:
+                    test_load = json.load(f)
+                logger.info(f"Validated metadata JSON structure: {len(test_load)} keys")
+                
+            except Exception as json_error:
+                logger.error(f"Error generating metadata JSON: {json_error}")
+                logger.info("Creating simplified metadata without problematic fields...")
+                
+                # Fallback: create simplified metadata
+                simple_metadata = {
+                    'processing_date': readable_date.replace('_', '/'),
+                    'original_records': int(self.stats.get('original_records', 0)),
+                    'excluded_records': int(self.stats.get('excluded_records', 0)),
+                    'final_records': int(len(self.result_df)) if self.result_df is not None else 0,
+                    'residential_count': int(self.stats.get('residential_count', 0)),
+                    'non_residential_count': int(self.stats.get('non_residential_count', 0)),
+                    'duplicates_removed': int(self.stats.get('duplicates_removed', 0)),
+                    'processing_success': True
+                }
+                
+                with open(metadata_file, 'w', encoding='utf-8') as f:
+                    json.dump(simple_metadata, f, indent=2, ensure_ascii=False)
+                logger.info(f"Generated simplified metadata file: {metadata_file}")
             
         except Exception as e:
             logger.error(f"Error generating summary files: {e}")

@@ -1,0 +1,1012 @@
+name: Enhanced OneMap SG Building Data Update with Slack Integration
+
+on:
+  schedule:
+    - cron: "0 0 15 * *" # Run on the 15th day of each month at midnight UTC
+  workflow_dispatch: # Allow manual triggering
+    inputs:
+      force_download:
+        description: "Force new download (ignore existing data)"
+        required: false
+        default: "false"
+      location_threshold:
+        description: "Location change threshold in meters"
+        required: false
+        default: "300"
+
+jobs:
+  update-onemap-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240 # Extended timeout for large downloads
+    permissions:
+      contents: write
+
+    steps:
+      - name: Send start notification
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data '{
+                "text":"🏢 OneMap Building Data Update Started",
+                "attachments":[{
+                  "color":"#36a64f",
+                  "title":"📅 Monthly Building Data Collection",
+                  "text":"Enhanced workflow with construction filtering and Slack integration\\nScheduled: 15th of each month at 08:00 SGT",
+                  "footer":"OneMap SG Building Collection | Starting data processing..."
+                }]
+              }' \
+              "$SLACK_WEBHOOK"
+          else
+            echo "WARNING: SLACK_WEBHOOK not configured"
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas requests tqdm aiohttp nest_asyncio asyncio logging
+
+      - name: Get current date
+        id: date
+        run: |
+          echo "date=$(date +'%d%m%Y')" >> $GITHUB_OUTPUT
+          echo "readable_date=$(date +'%d/%m/%Y')" >> $GITHUB_OUTPUT
+          echo "file_date=$(date +'%d_%m_%Y')" >> $GITHUB_OUTPUT
+
+      - name: Create necessary directories
+        run: |
+          mkdir -p data
+          mkdir -p logs
+
+      - name: Check for existing data and determine workflow
+        id: data_check
+        run: |
+          CURRENT_DATE="${{ steps.date.outputs.date }}"
+          FORCE_DOWNLOAD="${{ github.event.inputs.force_download || 'false' }}"
+
+          echo "Checking for existing OneMap data..."
+          echo "Current date: $CURRENT_DATE"
+          echo "Force download: $FORCE_DOWNLOAD"
+
+          # Check if current date file already exists
+          if [ -f "data/onemap_${CURRENT_DATE}.csv" ] && [ "$FORCE_DOWNLOAD" != "true" ]; then
+            echo "SKIP_DOWNLOAD=true" >> $GITHUB_OUTPUT
+            echo "✅ Data for $CURRENT_DATE already exists, skipping download"
+          else
+            echo "SKIP_DOWNLOAD=false" >> $GITHUB_OUTPUT
+            echo "📥 Will proceed with download"
+          fi
+
+          # Find previous data file for comparison
+          PREVIOUS_FILE=""
+          for file in data/onemap_*.csv; do
+            if [ -f "$file" ] && [[ "$file" != *"$CURRENT_DATE"* ]]; then
+              # Extract date from filename and compare
+              BASENAME=$(basename "$file" .csv)
+              FILE_DATE=${BASENAME#onemap_}
+              if [ -n "$PREVIOUS_FILE" ]; then
+                # Compare dates - this is simplified, for production you might want more robust date comparison
+                PREV_BASENAME=$(basename "$PREVIOUS_FILE" .csv)
+                PREV_DATE=${PREV_BASENAME#onemap_}
+                if [[ "$FILE_DATE" > "$PREV_DATE" ]]; then
+                  PREVIOUS_FILE="$file"
+                fi
+              else
+                PREVIOUS_FILE="$file"
+              fi
+            fi
+          done
+
+          if [ -n "$PREVIOUS_FILE" ]; then
+            echo "PREVIOUS_FILE=$PREVIOUS_FILE" >> $GITHUB_OUTPUT
+            echo "📋 Previous data file: $PREVIOUS_FILE"
+          else
+            echo "PREVIOUS_FILE=" >> $GITHUB_OUTPUT
+            echo "⚠️ No previous data file found"
+          fi
+
+      - name: Download OneMap data (conditional)
+        if: steps.data_check.outputs.SKIP_DOWNLOAD == 'false'
+        run: |
+          echo "📥 Starting OneMap data download..."
+          python scripts/onemap_building_download.py \
+            --output_file "data/onemap_${{ steps.date.outputs.date }}.csv" \
+            2>&1 | tee logs/download_${{ steps.date.outputs.date }}.log
+
+          # Check if download was successful
+          if [ -f "data/onemap_${{ steps.date.outputs.date }}.csv" ]; then
+            RECORD_COUNT=$(tail -n +2 "data/onemap_${{ steps.date.outputs.date }}.csv" | wc -l)
+            echo "✅ Download completed successfully with $RECORD_COUNT records"
+          else
+            echo "❌ Download failed - file not created"
+            exit 1
+          fi
+
+      - name: Compare with previous data (conditional)
+        if: steps.data_check.outputs.PREVIOUS_FILE != ''
+        run: |
+          echo "📊 Comparing current data with previous dataset..."
+          python scripts/onemap_building_compare.py \
+            --previous_file "${{ steps.data_check.outputs.PREVIOUS_FILE }}" \
+            --current_file "data/onemap_${{ steps.date.outputs.date }}.csv" \
+            --diff_output "data/differences_onemap_${{ steps.date.outputs.date }}.csv" \
+            --location_threshold ${{ github.event.inputs.location_threshold || '300' }} \
+            2>&1 | tee logs/compare_${{ steps.date.outputs.date }}.log
+
+      - name: Process and correct differences with enhanced filtering
+        run: |
+          # Determine input file
+          if [ -f "data/differences_onemap_${{ steps.date.outputs.date }}.csv" ]; then
+            INPUT_FILE="data/differences_onemap_${{ steps.date.outputs.date }}.csv"
+            echo "📝 Processing differences file: $INPUT_FILE"
+          else
+            # If no differences file, create one from the main dataset
+            INPUT_FILE="data/onemap_${{ steps.date.outputs.date }}.csv"
+            echo "📝 No differences detected, processing main dataset: $INPUT_FILE"
+          fi
+
+          echo "🔄 Running enhanced correction with construction filtering..."
+          python scripts/onemap_building_correct.py \
+            --input_file "$INPUT_FILE" \
+            --output_file "data/correction_differences_onemap_${{ steps.date.outputs.date }}.csv" \
+            2>&1 | tee logs/correct_${{ steps.date.outputs.date }}.log
+
+      - name: Extract comprehensive statistics for Slack
+        id: extract_stats
+        run: |
+          echo "📊 Extracting comprehensive statistics..."
+          python3 << 'EOF'
+          import pandas as pd
+          import os
+          import glob
+          import json
+          import datetime
+          import re
+          import numpy as np
+
+          def safe_int(value):
+              """Safely convert value to int, handling numpy types"""
+              try:
+                  if pd.isna(value):
+                      return 0
+                  if hasattr(value, 'item'):  # numpy scalar
+                      return int(value.item())
+                  return int(value)
+              except:
+                  return 0
+
+          def safe_float(value):
+              """Safely convert value to float, handling numpy types"""
+              try:
+                  if pd.isna(value):
+                      return 0.0
+                  if hasattr(value, 'item'):  # numpy scalar
+                      return float(value.item())
+                  return float(value)
+              except:
+                  return 0.0
+
+          # Initialize statistics with defaults
+          stats = {
+              'TOTAL_BUILDINGS': 0,
+              'EXCLUDED_BUILDINGS': 0,
+              'FINAL_BUILDINGS': 0,
+              'RESIDENTIAL_COUNT': 0,
+              'NON_RESIDENTIAL_COUNT': 0,
+              'DUPLICATES_REMOVED': 0,
+              'NEW_BUILDINGS': 0,
+              'NAME_CHANGES': 0,
+              'LOCATION_CHANGES': 0,
+              'TOTAL_CHANGES': 0,
+              'EXCLUSION_RATE': 0.0,
+              'PREVIOUS_DATE': 'Unknown',
+              'CURRENT_DATE': 'Unknown',
+              'PROCESSING_SUCCESS': True,
+              'NEW_BUILDINGS_DETAILS': '[]',
+              'EXCLUDED_EXAMPLES': '[]'
+          }
+
+          current_date = datetime.datetime.now().strftime("%d%m%Y")
+          readable_date = datetime.datetime.now().strftime("%d/%m/%Y")
+          file_date = datetime.datetime.now().strftime("%d_%m_%Y")
+
+          stats['CURRENT_DATE'] = readable_date
+
+          try:
+              # 1. Load main corrected results
+              corrected_file = f"data/correction_differences_onemap_{current_date}.csv"
+              if os.path.exists(corrected_file):
+                  df_corrected = pd.read_csv(corrected_file)
+                  stats['FINAL_BUILDINGS'] = safe_int(len(df_corrected))
+                  
+                  if 'is_non_residential' in df_corrected.columns:
+                      non_res_count = safe_int(df_corrected['is_non_residential'].sum())
+                      stats['NON_RESIDENTIAL_COUNT'] = non_res_count
+                      stats['RESIDENTIAL_COUNT'] = safe_int(len(df_corrected)) - non_res_count
+                  
+                  print(f"✅ Loaded corrected results: {stats['FINAL_BUILDINGS']} buildings")
+              
+              # 2. Load processing metadata if available - with error handling
+              metadata_file = f"data/processing_metadata_{file_date}.json"
+              if os.path.exists(metadata_file):
+                  try:
+                      with open(metadata_file, 'r') as f:
+                          content = f.read().strip()
+                          if content and content.startswith('{') and content.endswith('}'):
+                              metadata = json.loads(content)
+                              
+                              if 'stats' in metadata:
+                                  stats.update({
+                                      'TOTAL_BUILDINGS': safe_int(metadata['stats'].get('original_records', 0)),
+                                      'EXCLUDED_BUILDINGS': safe_int(metadata['stats'].get('excluded_records', 0)),
+                                      'DUPLICATES_REMOVED': safe_int(metadata['stats'].get('duplicates_removed', 0))
+                                  })
+                              
+                              # Direct access for newer format
+                              if 'original_records' in metadata:
+                                  stats.update({
+                                      'TOTAL_BUILDINGS': safe_int(metadata.get('original_records', 0)),
+                                      'EXCLUDED_BUILDINGS': safe_int(metadata.get('excluded_records', 0)),
+                                      'DUPLICATES_REMOVED': safe_int(metadata.get('duplicates_removed', 0)),
+                                      'RESIDENTIAL_COUNT': safe_int(metadata.get('residential_count', stats['RESIDENTIAL_COUNT'])),
+                                      'NON_RESIDENTIAL_COUNT': safe_int(metadata.get('non_residential_count', stats['NON_RESIDENTIAL_COUNT']))
+                                  })
+                              
+                              if 'exclusion_examples' in metadata:
+                                  stats['EXCLUDED_EXAMPLES'] = json.dumps(metadata['exclusion_examples'])
+                              
+                              print(f"✅ Loaded processing metadata successfully")
+                          else:
+                              print(f"⚠️ Metadata file is empty or malformed, skipping")
+                  except json.JSONDecodeError as e:
+                      print(f"⚠️ JSON decode error in metadata: {e}")
+                      print(f"⚠️ Will use statistics from other sources")
+                  except Exception as e:
+                      print(f"⚠️ Error reading metadata: {e}")
+              
+              # 3. Try to get stats from summary file as backup
+              summary_file = f"data/processing_summary_{file_date}.txt"
+              if os.path.exists(summary_file) and stats['TOTAL_BUILDINGS'] == 0:
+                  try:
+                      with open(summary_file, 'r') as f:
+                          content = f.read()
+                          
+                      # Parse summary text for numbers
+                      import re
+                      
+                      # Extract original records
+                      match = re.search(r'Original Records:\s*(\d+)', content)
+                      if match:
+                          stats['TOTAL_BUILDINGS'] = int(match.group(1))
+                      
+                      # Extract excluded records  
+                      match = re.search(r'Excluded Records:\s*(\d+)', content)
+                      if match:
+                          stats['EXCLUDED_BUILDINGS'] = int(match.group(1))
+                      
+                      # Extract final records
+                      match = re.search(r'Final Records:\s*(\d+)', content)
+                      if match:
+                          final_from_summary = int(match.group(1))
+                          if stats['FINAL_BUILDINGS'] == 0:
+                              stats['FINAL_BUILDINGS'] = final_from_summary
+                      
+                      # Extract residential count
+                      match = re.search(r'Residential Buildings:\s*(\d+)', content)
+                      if match:
+                          stats['RESIDENTIAL_COUNT'] = int(match.group(1))
+                      
+                      # Extract non-residential count
+                      match = re.search(r'Non-Residential Buildings:\s*(\d+)', content)
+                      if match:
+                          stats['NON_RESIDENTIAL_COUNT'] = int(match.group(1))
+                      
+                      print(f"✅ Extracted statistics from summary file as backup")
+                  except Exception as e:
+                      print(f"⚠️ Error parsing summary file: {e}")
+              
+              # 4. Load differences/changes data
+              diff_files = glob.glob(f"data/differences_onemap_{current_date}.csv") + glob.glob("data/differences_onemap_*-*.csv")
+              if diff_files:
+                  latest_diff_file = sorted(diff_files)[-1]
+                  df_diff = pd.read_csv(latest_diff_file)
+                  
+                  stats['TOTAL_CHANGES'] = safe_int(len(df_diff))
+                  
+                  if 'change_type' in df_diff.columns:
+                      change_counts = df_diff['change_type'].value_counts().to_dict()
+                      stats['NEW_BUILDINGS'] = safe_int(change_counts.get('new_building', 0))
+                      stats['NAME_CHANGES'] = safe_int(change_counts.get('name_change', 0))
+                      stats['LOCATION_CHANGES'] = safe_int(change_counts.get('location_change', 0))
+                      
+                      # Get new buildings details for Slack
+                      new_buildings = df_diff[df_diff['change_type'] == 'new_building']
+                      if not new_buildings.empty and len(new_buildings) <= 10:
+                          new_details = []
+                          for _, row in new_buildings.iterrows():
+                              detail = {
+                                  'postal_code': str(row.get('postal_code', '')),
+                                  'name': str(row.get('name', '')),
+                                  'street': str(row.get('street', ''))
+                              }
+                              new_details.append(detail)
+                          stats['NEW_BUILDINGS_DETAILS'] = json.dumps(new_details)
+                  
+                  print(f"✅ Loaded changes data: {stats['TOTAL_CHANGES']} total changes")
+              
+              # 5. Calculate exclusion rate
+              if stats['TOTAL_BUILDINGS'] > 0:
+                  stats['EXCLUSION_RATE'] = safe_float((stats['EXCLUDED_BUILDINGS'] / stats['TOTAL_BUILDINGS']) * 100)
+              
+              # 6. Find previous date from file names
+              onemap_files = glob.glob('data/onemap_*.csv')
+              if onemap_files:
+                  previous_files = []
+                  for file in onemap_files:
+                      filename = os.path.basename(file)
+                      date_match = re.search(r'onemap_(\d{8})\.csv', filename)
+                      if date_match and date_match.group(1) != current_date:
+                          file_date_str = date_match.group(1)
+                          try:
+                              dt = datetime.datetime.strptime(file_date_str, "%d%m%Y")
+                              previous_files.append((file, dt, file_date_str))
+                          except:
+                              pass
+                  
+                  if previous_files:
+                      previous_files.sort(key=lambda x: x[1], reverse=True)
+                      prev_date_str = previous_files[0][2]
+                      try:
+                          dt = datetime.datetime.strptime(prev_date_str, "%d%m%Y")
+                          stats['PREVIOUS_DATE'] = dt.strftime("%d/%m/%Y")
+                      except:
+                          stats['PREVIOUS_DATE'] = prev_date_str
+              
+              print("📊 Final Statistics Summary:")
+              for key, value in stats.items():
+                  if not key.endswith('_DETAILS') and not key.endswith('_EXAMPLES'):
+                      print(f"   {key}: {value}")
+              
+              # Validate final statistics
+              if stats['FINAL_BUILDINGS'] == 0 and stats['TOTAL_BUILDINGS'] > 0:
+                  print("⚠️ WARNING: Final buildings count is 0 but total buildings > 0")
+                  print("⚠️ This suggests a processing issue - check correction logs")
+                  stats['PROCESSING_SUCCESS'] = False
+              
+          except Exception as e:
+              print(f"❌ Error extracting statistics: {e}")
+              stats['PROCESSING_SUCCESS'] = False
+              import traceback
+              traceback.print_exc()
+
+          # Write to environment file
+          env_file = os.environ.get('GITHUB_ENV')
+          if env_file:
+              with open(env_file, 'a') as f:
+                  for key, value in stats.items():
+                      # Ensure all values are strings for environment variables
+                      str_value = str(value).replace('\n', ' ')
+                      f.write(f"{key}={str_value}\n")
+
+          print("✅ Statistics extraction completed")
+          print(f"📊 Key metrics: {stats['FINAL_BUILDINGS']} final, {stats['EXCLUDED_BUILDINGS']} excluded, {stats['TOTAL_CHANGES']} changes")
+          EOF
+
+      - name: Create enhanced Slack payload
+        id: create_payload
+        run: |
+          echo "🔄 Creating enhanced Slack notification payload..."
+          python3 << 'EOF'
+          import json
+          import os
+          import glob
+          from datetime import datetime
+
+          def create_enhanced_slack_payload():
+              """Create comprehensive Slack payload with downloads and statistics"""
+              
+              # Get environment variables safely
+              try:
+                  total_buildings = int(os.getenv('TOTAL_BUILDINGS', '0'))
+                  excluded_buildings = int(os.getenv('EXCLUDED_BUILDINGS', '0'))
+                  final_buildings = int(os.getenv('FINAL_BUILDINGS', '0'))
+                  residential_count = int(os.getenv('RESIDENTIAL_COUNT', '0'))
+                  non_residential_count = int(os.getenv('NON_RESIDENTIAL_COUNT', '0'))
+                  duplicates_removed = int(os.getenv('DUPLICATES_REMOVED', '0'))
+                  new_buildings = int(os.getenv('NEW_BUILDINGS', '0'))
+                  name_changes = int(os.getenv('NAME_CHANGES', '0'))
+                  location_changes = int(os.getenv('LOCATION_CHANGES', '0'))
+                  total_changes = int(os.getenv('TOTAL_CHANGES', '0'))
+                  exclusion_rate = float(os.getenv('EXCLUSION_RATE', '0.0'))
+                  processing_success = os.getenv('PROCESSING_SUCCESS', 'true').lower() == 'true'
+                  previous_date = os.getenv('PREVIOUS_DATE', 'Unknown')
+                  current_date = os.getenv('CURRENT_DATE', 'Unknown')
+              except:
+                  # Fallback values
+                  total_buildings = excluded_buildings = final_buildings = 0
+                  residential_count = non_residential_count = duplicates_removed = 0
+                  new_buildings = name_changes = location_changes = total_changes = 0
+                  exclusion_rate = 0.0
+                  processing_success = False
+                  previous_date = current_date = 'Unknown'
+              
+              # Determine status and color
+              if not processing_success:
+                  status_color = "danger"
+                  status_emoji = "❌"
+                  status_text = "Processing Failed"
+              elif total_changes == 0:
+                  status_color = "good"
+                  status_emoji = "✅"
+                  status_text = "No Changes Detected"
+              elif total_changes <= 50:
+                  status_color = "warning"
+                  status_emoji = "⚠️"
+                  status_text = "Minor Changes"
+              else:
+                  status_color = "danger"
+                  status_emoji = "🚨"
+                  status_text = "Significant Changes"
+              
+              # Repository info
+              github_repo = os.getenv('GITHUB_REPOSITORY', 'your-repo/onemap-building-sg')
+              repo_url = f"https://github.com/{github_repo}"
+              raw_url = f"{repo_url}/raw/main/data"
+              
+              # Get current date for file names
+              current_date_file = datetime.now().strftime("%d%m%Y")
+              readable_date_file = datetime.now().strftime("%d_%m_%Y")
+              
+              # Create download buttons
+              buttons = []
+              
+              # 1. Main corrected dataset
+              main_file = f"correction_differences_onemap_{current_date_file}.csv"
+              if os.path.exists(f"data/{main_file}"):
+                  buttons.append({
+                      "type": "button",
+                      "text": f"📊 Main Dataset ({final_buildings:,})",
+                      "url": f"{raw_url}/{main_file}",
+                      "style": "primary"
+                  })
+              
+              # 2. New buildings (if any)
+              if new_buildings > 0:
+                  new_buildings_file = f"new_buildings_{readable_date_file}.csv"
+                  if os.path.exists(f"data/{new_buildings_file}"):
+                      buttons.append({
+                          "type": "button",
+                          "text": f"🆕 New Buildings ({new_buildings})",
+                          "url": f"{raw_url}/{new_buildings_file}",
+                          "style": "good"
+                      })
+              
+              # 3. Building changes summary
+              if total_changes > 0:
+                  changes_file = f"building_changes_summary_{readable_date_file}.csv"
+                  if os.path.exists(f"data/{changes_file}"):
+                      buttons.append({
+                          "type": "button",
+                          "text": f"📋 All Changes ({total_changes})",
+                          "url": f"{raw_url}/{changes_file}",
+                          "style": "default"
+                      })
+              
+              # 4. Processing statistics
+              stats_file = f"processing_statistics_{readable_date_file}.csv"
+              if os.path.exists(f"data/{stats_file}"):
+                  buttons.append({
+                      "type": "button",
+                      "text": "📈 Statistics Report",
+                      "url": f"{raw_url}/{stats_file}",
+                      "style": "default"
+                  })
+              
+              # 5. Text summary
+              summary_file = f"processing_summary_{readable_date_file}.txt"
+              if os.path.exists(f"data/{summary_file}"):
+                  buttons.append({
+                      "type": "button",
+                      "text": "📄 Summary Report",
+                      "url": f"{raw_url}/{summary_file}",
+                      "style": "default"
+                  })
+              
+              # 6. Excluded buildings (if any)
+              if excluded_buildings > 0:
+                  excluded_file = f"correction_differences_onemap_{current_date_file}_excluded.csv"
+                  if os.path.exists(f"data/{excluded_file}"):
+                      buttons.append({
+                          "type": "button",
+                          "text": f"🚫 Excluded ({excluded_buildings})",
+                          "url": f"{raw_url}/{excluded_file}",
+                          "style": "default"
+                      })
+              
+              # 7. Repository and logs
+              buttons.extend([
+                  {
+                      "type": "button",
+                      "text": "📂 Repository",
+                      "url": repo_url,
+                      "style": "default"
+                  },
+                  {
+                      "type": "button",
+                      "text": "🔍 Workflow Logs",
+                      "url": f"{repo_url}/actions",
+                      "style": "default"
+                  }
+              ])
+              
+              # Main attachment
+              main_attachment = {
+                  "color": status_color,
+                  "title": f"{status_emoji} OneMap Building Processing - {status_text}",
+                  "fields": [
+                      {
+                          "title": "📅 Processing Period",
+                          "value": f"*{previous_date}* → *{current_date}*",
+                          "short": False
+                      },
+                      {
+                          "title": "📊 Total Processed",
+                          "value": f"{total_buildings:,}",
+                          "short": True
+                      },
+                      {
+                          "title": "🏗️ Excluded (Construction)",
+                          "value": f"{excluded_buildings:,} ({exclusion_rate:.1f}%)",
+                          "short": True
+                      },
+                      {
+                          "title": "🏢 Final Buildings",
+                          "value": f"{final_buildings:,}",
+                          "short": True
+                      },
+                      {
+                          "title": "🔄 Duplicates Removed",
+                          "value": f"{duplicates_removed:,}",
+                          "short": True
+                      },
+                      {
+                          "title": "🏠 Residential",
+                          "value": f"{residential_count:,}",
+                          "short": True
+                      },
+                      {
+                          "title": "🏢 Non-Residential",
+                          "value": f"{non_residential_count:,}",
+                          "short": True
+                      }
+                  ],
+                  "actions": buttons,
+                  "footer": "OneMap SG Building Collection | Enhanced with construction filtering",
+                  "ts": int(datetime.now().timestamp())
+              }
+              
+              # Create attachments array
+              attachments = [main_attachment]
+              
+              # Add changes summary if there are changes
+              if total_changes > 0:
+                  changes_attachment = {
+                      "color": "#3498db",
+                      "title": "📋 Changes Detected",
+                      "fields": [
+                          {
+                              "title": "🆕 New Buildings",
+                              "value": str(new_buildings),
+                              "short": True
+                          },
+                          {
+                              "title": "✏️ Name Changes",
+                              "value": str(name_changes),
+                              "short": True
+                          },
+                          {
+                              "title": "📍 Location Changes",
+                              "value": str(location_changes),
+                              "short": True
+                          },
+                          {
+                              "title": "📊 Total Changes",
+                              "value": str(total_changes),
+                              "short": True
+                          }
+                      ]
+                  }
+                  attachments.append(changes_attachment)
+              
+              # Add new buildings details if available
+              if new_buildings > 0:
+                  try:
+                      new_buildings_details = json.loads(os.getenv('NEW_BUILDINGS_DETAILS', '[]'))
+                      if new_buildings_details:
+                          details_text = []
+                          for building in new_buildings_details[:5]:  # Limit to 5 for display
+                              postal = building.get('postal_code', 'N/A')
+                              name = building.get('name', 'N/A')
+                              street = building.get('street', 'N/A')
+                              details_text.append(f"`{postal}` {name} - {street}")
+                          
+                          buildings_text = "\n".join(details_text)
+                          if len(new_buildings_details) > 5:
+                              buildings_text += f"\n... and {len(new_buildings_details) - 5} more"
+                          
+                          attachments.append({
+                              "color": "#2ecc71",
+                              "title": "🆕 New Buildings Sample",
+                              "text": buildings_text,
+                              "footer": "Click 'New Buildings' button above to download complete list"
+                          })
+                  except:
+                      pass
+              
+              # Add exclusion information if buildings were excluded
+              if excluded_buildings > 0:
+                  exclusion_attachment = {
+                      "color": "#e74c3c",
+                      "title": "🚫 Construction/Temporary Buildings Excluded",
+                      "fields": [
+                          {
+                              "title": "Excluded Count",
+                              "value": f"{excluded_buildings:,} buildings ({exclusion_rate:.1f}%)",
+                              "short": True
+                          },
+                          {
+                              "title": "Exclusion Criteria",
+                              "value": "• Under construction (u/c)\n• Temporary site offices\n• Construction structures\n• Sales offices/galleries",
+                              "short": True
+                          }
+                      ]
+                  }
+                  
+                  # Add examples if available
+                  try:
+                      excluded_examples = json.loads(os.getenv('EXCLUDED_EXAMPLES', '[]'))
+                      if excluded_examples:
+                          examples_text = []
+                          for example in excluded_examples[:3]:
+                              postal = example.get('postal_code', 'N/A')
+                              name = example.get('name', 'N/A')
+                              examples_text.append(f"`{postal}` {name}")
+                          
+                          exclusion_attachment["fields"].append({
+                              "title": "Examples Excluded",
+                              "value": "\n".join(examples_text),
+                              "short": False
+                          })
+                  except:
+                      pass
+                  
+                  attachments.append(exclusion_attachment)
+              
+              # Add download instructions
+              if buttons:
+                  download_text = "📥 **Available Downloads:**\n"
+                  download_items = []
+                  
+                  if final_buildings > 0:
+                      download_items.append(f"• **Main Dataset**: {final_buildings:,} processed buildings")
+                  if new_buildings > 0:
+                      download_items.append(f"• **New Buildings**: {new_buildings} newly discovered")
+                  if total_changes > 0:
+                      download_items.append(f"• **Changes Summary**: {total_changes} modifications")
+                  if excluded_buildings > 0:
+                      download_items.append(f"• **Excluded Buildings**: {excluded_buildings} filtered out")
+                  
+                  download_items.extend([
+                      "• **Statistics Report**: Processing metrics",
+                      "• **Summary Report**: Human-readable overview"
+                  ])
+                  
+                  download_text += "\n".join(download_items)
+                  
+                  attachments.append({
+                      "color": "#9b59b6",
+                      "title": "📊 Download Information",
+                      "text": download_text,
+                      "footer": "All files are automatically generated and ready for download"
+                  })
+              
+              # Create final payload
+              payload = {
+                  "text": "🏢 OneMap Building Data Processing Complete",
+                  "attachments": attachments
+              }
+              
+              return payload
+
+          # Generate the payload
+          payload = create_enhanced_slack_payload()
+
+          # Save to file
+          with open('slack_payload_enhanced.json', 'w', encoding='utf-8') as f:
+              json.dump(payload, f, indent=2, ensure_ascii=False)
+
+          print("✅ Enhanced Slack payload created successfully")
+          print(f"📊 Payload statistics:")
+          print(f"   - Attachments: {len(payload['attachments'])}")
+          if payload['attachments']:
+              print(f"   - Download buttons: {len(payload['attachments'][0].get('actions', []))}")
+          print(f"   - Payload size: {len(json.dumps(payload))} characters")
+
+          EOF
+
+      - name: Commit enhanced results to repository
+        run: |
+          echo "💾 Committing enhanced results to repository..."
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+
+          CURRENT_DATE="${{ steps.date.outputs.date }}"
+          READABLE_DATE="${{ steps.date.outputs.readable_date }}"
+
+          # Add all generated files
+          echo "📁 Adding files to git..."
+
+          # Main data files
+          [ -f "data/onemap_${CURRENT_DATE}.csv" ] && git add "data/onemap_${CURRENT_DATE}.csv"
+          [ -f "data/differences_onemap_${CURRENT_DATE}.csv" ] && git add "data/differences_onemap_${CURRENT_DATE}.csv"
+          [ -f "data/correction_differences_onemap_${CURRENT_DATE}.csv" ] && git add "data/correction_differences_onemap_${CURRENT_DATE}.csv"
+
+          # Enhanced files
+          for pattern in "new_buildings_*" "building_changes_summary_*" "processing_statistics_*" "processing_summary_*" "processing_metadata_*" "*_excluded.csv"; do
+            for file in data/${pattern}; do
+              [ -f "$file" ] && git add "$file"
+            done
+          done
+
+          # Log files
+          for file in logs/*.log; do
+            [ -f "$file" ] && git add "$file"
+          done
+
+          # Reports
+          for pattern in "differences_*_report.txt" "error_log.txt"; do
+            for file in data/${pattern}; do
+              [ -f "$file" ] && git add "$file"
+            done
+          done
+
+          # Create comprehensive commit message
+          COMMIT_MSG="🏢 Enhanced OneMap data ${READABLE_DATE}"
+
+          if [ "${FINAL_BUILDINGS:-0}" -gt 0 ]; then
+            COMMIT_MSG="$COMMIT_MSG: ${FINAL_BUILDINGS} buildings processed"
+          fi
+
+          if [ "${EXCLUDED_BUILDINGS:-0}" -gt 0 ]; then
+            COMMIT_MSG="$COMMIT_MSG, ${EXCLUDED_BUILDINGS} excluded (construction/temp)"
+          fi
+
+          if [ "${TOTAL_CHANGES:-0}" -gt 0 ]; then
+            COMMIT_MSG="$COMMIT_MSG, ${TOTAL_CHANGES} changes detected"
+            
+            if [ "${NEW_BUILDINGS:-0}" -gt 0 ]; then
+              COMMIT_MSG="$COMMIT_MSG (+${NEW_BUILDINGS} new)"
+            fi
+            if [ "${NAME_CHANGES:-0}" -gt 0 ]; then
+              COMMIT_MSG="$COMMIT_MSG (~${NAME_CHANGES} renamed)"
+            fi
+            if [ "${LOCATION_CHANGES:-0}" -gt 0 ]; then
+              COMMIT_MSG="$COMMIT_MSG (📍${LOCATION_CHANGES} moved)"
+            fi
+          else
+            COMMIT_MSG="$COMMIT_MSG, no changes detected"
+          fi
+
+          if [ "${DUPLICATES_REMOVED:-0}" -gt 0 ]; then
+            COMMIT_MSG="$COMMIT_MSG, ${DUPLICATES_REMOVED} duplicates removed"
+          fi
+
+          # Add classification info
+          if [ "${RESIDENTIAL_COUNT:-0}" -gt 0 ] && [ "${NON_RESIDENTIAL_COUNT:-0}" -gt 0 ]; then
+            COMMIT_MSG="$COMMIT_MSG (${RESIDENTIAL_COUNT} residential, ${NON_RESIDENTIAL_COUNT} commercial)"
+          fi
+
+          # Commit changes
+          if git diff --staged --quiet; then
+            echo "ℹ️ No changes to commit"
+          else
+            git commit -m "$COMMIT_MSG"
+            echo "✅ Committed: $COMMIT_MSG"
+            
+            # Show committed files
+            echo "📁 Committed files:"
+            git diff --name-only HEAD~1 HEAD | sed 's/^/   • /'
+          fi
+
+          # Push with retry
+          echo "⬆️ Pushing to repository..."
+          if ! git push origin main; then
+            echo "⚠️ First push failed, retrying with rebase..."
+            git pull --rebase origin main
+            git push origin main
+          fi
+
+          echo "✅ Successfully pushed enhanced results to repository"
+
+      - name: Send enhanced Slack notification
+        if: always()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK" ]; then
+            echo "📤 Sending enhanced Slack notification..."
+            
+            # Check if enhanced payload exists
+            if [ -f "slack_payload_enhanced.json" ]; then
+              echo "📋 Enhanced payload found, validating..."
+              
+              # Validate JSON
+              if python3 -m json.tool slack_payload_enhanced.json > /dev/null 2>&1; then
+                echo "✅ JSON payload is valid"
+                
+                # Get payload size
+                PAYLOAD_SIZE=$(wc -c < slack_payload_enhanced.json)
+                echo "📏 Payload size: $PAYLOAD_SIZE bytes"
+                
+                # Send to Slack
+                echo "🚀 Sending to Slack..."
+                RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+                  -H 'Content-type: application/json' \
+                  -d @slack_payload_enhanced.json \
+                  "$SLACK_WEBHOOK")
+                
+                HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+                RESPONSE_BODY=$(echo "$RESPONSE" | head -n -1)
+                
+                echo "📊 Slack API Response:"
+                echo "   Status: $HTTP_CODE"
+                echo "   Body: $RESPONSE_BODY"
+                
+                if [ "$HTTP_CODE" -eq 200 ] && [ "$RESPONSE_BODY" = "ok" ]; then
+                  echo "✅ Enhanced notification sent successfully!"
+                else
+                  echo "❌ Failed to send notification"
+                  echo "🔍 First 500 characters of payload:"
+                  head -c 500 slack_payload_enhanced.json
+                fi
+              else
+                echo "❌ Invalid JSON payload"
+                python3 -m json.tool slack_payload_enhanced.json 2>&1 | head -20
+              fi
+            else
+              echo "❌ Enhanced payload file not found"
+              
+              # Send basic failure notification
+              curl -X POST -H 'Content-type: application/json' \
+                --data '{
+                  "text":"❌ OneMap Building Processing Issue",
+                  "attachments":[{
+                    "color":"danger",
+                    "title":"🚨 Enhanced Workflow Problem",
+                    "text":"The enhanced OneMap building processing completed but notification payload was not generated properly. Please check the workflow logs.",
+                    "actions":[{
+                      "type":"button",
+                      "text":"🔍 Check Logs",
+                      "url":"https://github.com/'${GITHUB_REPOSITORY}'/actions",
+                      "style":"danger"
+                    }]
+                  }]
+                }' \
+                "$SLACK_WEBHOOK"
+            fi
+          else
+            echo "⚠️ SLACK_WEBHOOK not configured - notification skipped"
+          fi
+
+      - name: Send failure notification
+        if: failure()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data '{
+                "text":"❌ OneMap Building Processing Failed",
+                "attachments":[{
+                  "color":"danger",
+                  "title":"🚨 Enhanced Workflow Failure",
+                  "text":"The enhanced OneMap building data processing workflow has failed. This includes download, comparison, correction with construction filtering, and Slack integration.",
+                  "fields":[
+                    {
+                      "title":"Failure Time",
+                      "value":"'$(date -u +'%Y-%m-%d %H:%M:%S UTC')'",
+                      "short":true
+                    },
+                    {
+                      "title":"Scheduled Run",
+                      "value":"15th of each month",
+                      "short":true
+                    }
+                  ],
+                  "actions":[
+                    {
+                      "type":"button",
+                      "text":"🔍 Check Workflow Logs",
+                      "url":"https://github.com/'${GITHUB_REPOSITORY}'/actions",
+                      "style":"danger"
+                    },
+                    {
+                      "type":"button",
+                      "text":"📂 View Repository",
+                      "url":"https://github.com/'${GITHUB_REPOSITORY}'",
+                      "style":"default"
+                    }
+                  ]
+                }]
+              }' \
+              "$SLACK_WEBHOOK"
+          fi
+
+      - name: Upload artifacts (backup)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: onemap-enhanced-results-${{ steps.date.outputs.date }}
+          path: |
+            data/*.csv
+            data/*.txt
+            data/*.json
+            logs/*.log
+            slack_payload_enhanced.json
+          retention-days: 30
+
+      - name: Enhanced workflow summary
+        if: always()
+        run: |
+          echo "=============================================="
+          echo "ENHANCED ONEMAP BUILDING WORKFLOW SUMMARY"
+          echo "=============================================="
+          echo "📅 Processing Date: ${{ steps.date.outputs.readable_date }}"
+          echo "🔄 Workflow Status: ${{ job.status }}"
+          echo ""
+          echo "📊 PROCESSING STATISTICS"
+          echo "------------------------"
+          echo "Total Buildings Processed: ${TOTAL_BUILDINGS:-0}"
+          echo "Excluded (Construction/Temp): ${EXCLUDED_BUILDINGS:-0} (${EXCLUSION_RATE:-0}%)"
+          echo "Final Buildings: ${FINAL_BUILDINGS:-0}"
+          echo "Duplicates Removed: ${DUPLICATES_REMOVED:-0}"
+          echo ""
+          echo "🏢 BUILDING CLASSIFICATION"
+          echo "--------------------------"
+          echo "Residential Buildings: ${RESIDENTIAL_COUNT:-0}"
+          echo "Non-Residential Buildings: ${NON_RESIDENTIAL_COUNT:-0}"
+          echo ""
+          echo "📋 CHANGES DETECTED"
+          echo "-------------------"
+          echo "Total Changes: ${TOTAL_CHANGES:-0}"
+          echo "New Buildings: ${NEW_BUILDINGS:-0}"
+          echo "Name Changes: ${NAME_CHANGES:-0}"
+          echo "Location Changes: ${LOCATION_CHANGES:-0}"
+          echo ""
+          echo "🔧 ENHANCED FEATURES"
+          echo "--------------------"
+          echo "✅ Construction filtering enabled"
+          echo "✅ Temporary building exclusion"
+          echo "✅ Comprehensive statistics"
+          echo "✅ Slack integration with downloads"
+          echo "✅ User-friendly summary files"
+          echo ""
+          echo "📊 COMPARISON PERIOD"
+          echo "--------------------"
+          echo "Previous: ${PREVIOUS_DATE:-Unknown}"
+          echo "Current: ${CURRENT_DATE:-Unknown}"
+          echo ""
+          echo "🔄 NEXT SCHEDULED RUN"
+          echo "---------------------"
+          echo "Date: 15th of next month"
+          echo "Time: 08:00 Singapore Time"
+          echo "=============================================="
