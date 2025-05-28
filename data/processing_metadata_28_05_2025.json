@@ -1,0 +1,37 @@
+{
+  "processing_date": "28/05/2025",
+  "stats": {
+    "original_records": 195,
+    "excluded_records": 19,
+    "final_records": 0,
+    "residential_count": 140,
+    "non_residential_count": 36,
+    "corrections_applied": 0,
+    "duplicates_removed": 0
+  },
+  "final_count": 176,
+  "files_generated": [
+    "corrected_differences_onemap_28052025.csv",
+    "new_buildings_28_05_2025.csv",
+    "building_changes_summary_28_05_2025.csv",
+    "processing_statistics_28_05_2025.csv",
+    "processing_summary_28_05_2025.txt"
+  ],
+  "exclusion_examples": [
+    {
+      "postal_code": "39969",
+      "name": "TEMPORARY SITE OFFICE",
+      "street": "REPUBLIC AVENUE"
+    },
+    {
+      "postal_code": "529420",
+      "name": "AURELLE OF TAMPINES (U/C)",
+      "street": "TAMPINES STREET 62"
+    },
+    {
+      "postal_code": "609890",
+      "name": "TEMPORARY SITE OFFICE",
+      "street": "JURONG TOWN HALL ROAD"
+    }
+  ]
+}

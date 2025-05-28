@@ -1,0 +1,44 @@
+2025-05-28 04:10:51,053 - INFO - Loading previous data from data/onemap_04042025.csv
+2025-05-28 04:10:51,145 - INFO - Previous dataset: 142042 records
+2025-05-28 04:10:51,145 - INFO - Loading current data from data/onemap_28052025.csv
+2025-05-28 04:10:51,236 - INFO - Current dataset: 141113 records
+2025-05-28 04:10:51,296 - INFO - Comparing datasets to identify differences...
+2025-05-28 04:10:51,368 - INFO - Found 113 new buildings
+2025-05-28 04:10:51,392 - INFO - Found 133879 buildings in both datasets
+/home/runner/work/onemap-building-sg/onemap-building-sg/scripts/onemap_building_compare.py:183: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  changes = pd.concat([changes, pd.DataFrame([row_data])], ignore_index=True)
+2025-05-28 04:14:00,701 - INFO - Location change detected for 628260_1: 947.07 meters
+2025-05-28 04:15:59,765 - INFO - Location change detected for 628208_1: 1170.47 meters
+2025-05-28 04:19:20,362 - INFO - Location change detected for 460049_49: 554.88 meters
+2025-05-28 04:20:01,109 - INFO - Location change detected for 627869_5: 568.44 meters
+2025-05-28 04:28:52,688 - INFO - Location change detected for 627867_100: 2139.09 meters
+2025-05-28 04:33:03,773 - INFO - Location change detected for 679525_201: 698.18 meters
+2025-05-28 04:34:08,377 - INFO - Total differences found: 195
+2025-05-28 04:34:08,377 - INFO -   - New buildings: 113
+2025-05-28 04:34:08,377 - INFO -   - Name changes: 77
+2025-05-28 04:34:08,377 - INFO -   - Location changes: 6 (threshold: 500.0 meters)
+2025-05-28 04:34:08,384 - INFO - Differences saved to data/differences_onemap_28052025.csv
+2025-05-28 04:34:08,384 - INFO - 
+==================================================
+ONEMAP BUILDING DATA COMPARISON REPORT
+==================================================
+Previous dataset: data/onemap_04042025.csv
+Current dataset: data/onemap_28052025.csv
+Differences output: data/differences_onemap_28052025.csv
+
+STATISTICS
+--------------------------------------------------
+Previous dataset records: 142042
+Current dataset records: 141113
+Total differences found: 195
+  - New buildings: 113
+  - Name changes: 77
+  - Location changes: 6 (distance > 500.0 meters)
+
+SUMMARY
+--------------------------------------------------
+Net change in records: -929 (-0.65%)
+
+Report generated on: 2025-05-28 04:34:08
+==================================================
+2025-05-28 04:34:08,385 - INFO - Report saved to data/differences_onemap_28052025_report.txt

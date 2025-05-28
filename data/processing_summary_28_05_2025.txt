@@ -1,0 +1,33 @@
+OneMap Building Data Processing Summary - 28/05/2025
+===============================================================
+
+PROCESSING STATISTICS
+---------------------
+Original Records: 195
+Excluded Records: 19 (Under construction/Temporary)
+Final Records: 176
+Duplicates Removed: 0
+
+BUILDING CLASSIFICATION
+-----------------------
+Residential Buildings: 140
+Non-Residential Buildings: 36
+
+EXCLUSION CRITERIA
+------------------
+Buildings excluded include:
+• Under construction (u/c) buildings
+• Temporary site offices
+• Construction-related structures
+• Sales offices and galleries
+• Mobile offices and portable cabins
+
+FILES GENERATED
+---------------
+• corrected_differences_onemap_*.csv - Main processed dataset
+• new_buildings_*.csv - Summary of new buildings (if any)
+• building_changes_summary_*.csv - All changes summary
+• processing_statistics_*.csv - Processing metrics
+• excluded_buildings_*.csv - Excluded buildings reference
+
+Generated: 2025-05-28 04:34:08

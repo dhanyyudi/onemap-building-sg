@@ -1,0 +1,3 @@
+Error with postal code 204687: Server disconnected
+Error with postal code 764165: HTTP 502
+Error with postal code 764159: HTTP 502

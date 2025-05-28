@@ -1,0 +1,44 @@
+2025-05-28 04:34:08,768 - INFO - Loading data from data/differences_onemap_28052025.csv
+2025-05-28 04:34:08,770 - INFO - Loaded 195 records
+2025-05-28 04:34:08,771 - INFO - Filtering out buildings under construction and temporary site offices...
+2025-05-28 04:34:08,779 - INFO - Excluded 19 buildings (under construction/temporary)
+2025-05-28 04:34:08,779 - INFO - Remaining records for processing: 176
+2025-05-28 04:34:08,780 - INFO - Examples of excluded buildings:
+2025-05-28 04:34:08,780 - INFO -   - 39969: TEMPORARY SITE OFFICE at REPUBLIC AVENUE
+2025-05-28 04:34:08,780 - INFO -   - 529420: AURELLE OF TAMPINES (U/C) at TAMPINES STREET 62
+2025-05-28 04:34:08,780 - INFO -   - 609890: TEMPORARY SITE OFFICE at JURONG TOWN HALL ROAD
+2025-05-28 04:34:08,780 - INFO -   - 699866: NOVO PLACE (U/C) at PLANTATION CLOSE
+2025-05-28 04:34:08,780 - INFO -   - 699867: NOVO PLACE (U/C) at PLANTATION CLOSE
+2025-05-28 04:34:08,781 - INFO - Excluded records saved to data/correction_differences_onemap_28052025_excluded.csv
+2025-05-28 04:34:08,782 - INFO - Found 0 unique postal codes with duplicates
+2025-05-28 04:34:08,782 - INFO - Total records with duplicate postal codes: 0
+2025-05-28 04:34:08,782 - INFO - Starting deduplication process...
+2025-05-28 04:34:08,782 - INFO - Calculating parent building scores...
+2025-05-28 04:34:08,794 - INFO - Added 176 non-duplicate records to result
+2025-05-28 04:34:08,794 - INFO - Selected 0 parent buildings from duplicate groups
+2025-05-28 04:34:08,794 - INFO - Removed 0 duplicate records
+2025-05-28 04:34:08,794 - INFO - Total records in deduplicated dataset: 176
+2025-05-28 04:34:08,794 - INFO - Applying naming conventions...
+2025-05-28 04:34:08,823 - INFO - Classified buildings: 140 residential, 36 non-residential
+2025-05-28 04:34:08,834 - INFO - Naming conventions applied successfully
+2025-05-28 04:34:08,834 - INFO - Generating summary files for Slack integration...
+2025-05-28 04:34:08,836 - INFO - Generated new buildings summary: data/new_buildings_28_05_2025.csv
+2025-05-28 04:34:08,849 - INFO - Generated changes summary: data/building_changes_summary_28_05_2025.csv
+2025-05-28 04:34:08,850 - INFO - Generated statistics summary: data/processing_statistics_28_05_2025.csv
+2025-05-28 04:34:08,850 - INFO - Generated text summary: data/processing_summary_28_05_2025.txt
+2025-05-28 04:34:08,851 - INFO - Generated metadata file: data/processing_metadata_28_05_2025.json
+2025-05-28 04:34:08,851 - INFO - Validated metadata JSON structure: 5 keys
+2025-05-28 04:34:08,853 - INFO - Corrected dataset saved to data/correction_differences_onemap_28052025.csv
+2025-05-28 04:34:08,853 - INFO - ============================================================
+2025-05-28 04:34:08,853 - INFO - ENHANCED CORRECTION SUMMARY
+2025-05-28 04:34:08,853 - INFO - ============================================================
+2025-05-28 04:34:08,853 - INFO - Original records: 195
+2025-05-28 04:34:08,853 - INFO - Excluded records: 19 (9.74%)
+2025-05-28 04:34:08,853 - INFO - Corrected records: 176
+2025-05-28 04:34:08,853 - INFO - Duplicates removed: 0
+2025-05-28 04:34:08,853 - INFO - Net records reduction: 19 (9.74%)
+2025-05-28 04:34:08,853 - INFO - Residential buildings: 140 (79.55%)
+2025-05-28 04:34:08,853 - INFO - Non-residential buildings: 36 (20.45%)
+2025-05-28 04:34:08,853 - INFO - ============================================================
+2025-05-28 04:34:08,853 - INFO - Enhanced correction process completed in 0.09 seconds
+2025-05-28 04:34:08,853 - INFO - ✅ Enhanced correction process completed successfully!
