@@ -8,39 +8,39 @@ This repository contains automated scripts to download, process, and maintain Si
 
 ```mermaid
 flowchart TD
-    A[🕐 Cron Job Trigger<br/>15th of Each Month<br/>00:00 UTC] --> B[📡 Download OneMap Data<br/>Current Date Data<br/>820,000 postal codes]
+    A["🕐 Cron Job Trigger<br/>15th of Each Month<br/>00:00 UTC"] --> B["📡 Download OneMap Data<br/>Current Date Data<br/>820,000 postal codes"]
 
-    B --> C{🔍 Previous Data<br/>Available?}
+    B --> C{"🔍 Previous Data<br/>Available?"}
 
-    C -->|No| D[🆕 First Run<br/>All Buildings = NEW]
-    C -->|Yes| E[📊 Load Previous Data<br/>e.g., onemap_04042025.csv]
+    C -->|No| D["🆕 First Run<br/>All Buildings = NEW"]
+    C -->|Yes| E["📊 Load Previous Data<br/>e.g. onemap_04042025.csv"]
 
-    E --> F[⚖️ Compare Datasets<br/>New Buildings + Name Changes<br/>+ Location Changes]
+    E --> F["⚖️ Compare Datasets<br/>New Buildings + Name Changes<br/>+ Location Changes"]
 
-    F --> G{📈 Changes<br/>Detected?}
+    F --> G{"📈 Changes<br/>Detected?"}
 
-    G -->|No Changes| H[✅ Skip Processing<br/>Use Original Data Only]
-    G -->|Changes Found| I[📝 Generate Differences<br/>differences_onemap_*.csv]
+    G -->|No Changes| H["✅ Skip Processing<br/>Use Original Data Only"]
+    G -->|Changes Found| I["📝 Generate Differences<br/>differences_onemap_DATE.csv"]
 
-    D --> J[🔧 Enhanced Correction<br/>Filter Construction Sites<br/>Apply Naming Conventions]
+    D --> J["🔧 Enhanced Correction<br/>Filter Construction Sites<br/>Apply Naming Conventions"]
     I --> J
 
-    J --> K[🚫 Exclude Buildings<br/>Under Construction (u/c)<br/>Temporary Site Offices]
+    J --> K["🚫 Exclude Buildings<br/>Under Construction UC<br/>Temporary Site Offices"]
 
-    K --> L[🔄 Deduplicate Records<br/>Select Parent Buildings<br/>Remove Duplicates]
+    K --> L["🔄 Deduplicate Records<br/>Select Parent Buildings<br/>Remove Duplicates"]
 
-    L --> M[🏗️ Classify Buildings<br/>Residential vs Non-Residential<br/>Apply Formatting Rules]
+    L --> M["🏗️ Classify Buildings<br/>Residential vs Non-Residential<br/>Apply Formatting Rules"]
 
-    M --> N[📋 Generate Summary Files<br/>New Buildings Report<br/>Changes Summary<br/>Statistics Report]
+    M --> N["📋 Generate Summary Files<br/>New Buildings Report<br/>Changes Summary<br/>Statistics Report"]
 
-    H --> O[💾 Save Final Dataset<br/>correction_differences_*.csv]
+    H --> O["💾 Save Final Dataset<br/>correction_differences.csv"]
     N --> O
 
-    O --> P[📤 Commit to GitHub<br/>Update Repository]
+    O --> P["📤 Commit to GitHub<br/>Update Repository"]
 
-    P --> Q[📢 Enhanced Slack Notification<br/>Download Links + Statistics<br/>Construction Filtering Details]
+    P --> Q["📢 Enhanced Slack Notification<br/>Download Links + Statistics<br/>Construction Filtering Details"]
 
-    Q --> R[😴 Wait Until Next Month<br/>15th at 08:00 SGT]
+    Q --> R["😴 Wait Until Next Month<br/>15th at 08:00 SGT"]
     R --> A
 
     style A fill:#e1f5fe
@@ -78,7 +78,7 @@ flowchart TD
         C4["Compare Key Sets<br/>new - previous keys"]
         C5["Detect Name Changes<br/>for common keys"]
         C6["Calculate Location Changes<br/>Haversine distance > threshold"]
-        C7["Generate Change Report<br/>differences_onemap_*.csv"]
+        C7["Generate Change Report<br/>differences_onemap_DATE.csv"]
     end
     
     subgraph subGraph3["🎯 Change Processing Decision"]
@@ -90,14 +90,14 @@ flowchart TD
     subgraph subGraph4["🚫 Construction & Temporary Filtering"]
         E1["Load Differences Data<br/>or full dataset"]
         E2["Apply Exclusion Patterns<br/>Regex matching"]
-        E3["Check Building Names<br/>Under Construction (u/c)"]
+        E3["Check Building Names<br/>Under Construction UC"]
         E4["Check Street Names<br/>Temporary Site Office"]
-        E5["Filter Construction Sites<br/>AURELLE OF TAMPINES (U/C)"]
-        E6["Save Excluded Buildings<br/>*_excluded.csv"]
+        E5["Filter Construction Sites<br/>AURELLE OF TAMPINES UC"]
+        E6["Save Excluded Buildings<br/>excluded.csv"]
     end
     
     subgraph subGraph5["🔄 Deduplication & Correction"]
-        F1["Find Duplicate Postal Codes<br/>duplicated() analysis"]
+        F1["Find Duplicate Postal Codes<br/>duplicated analysis"]
         F2["Calculate Parent Scores<br/>Block number analysis"]
         F3["Analyze Building Names<br/>Parent building keywords"]
         F4["Select Main Buildings<br/>Highest parent score"]
@@ -113,11 +113,11 @@ flowchart TD
     end
     
     subgraph subGraph7["📋 Summary File Generation"]
-        H1["Generate New Buildings Summary<br/>new_buildings_*.csv"]
-        H2["Create Changes Summary<br/>building_changes_summary_*.csv"]
-        H3["Compile Statistics Report<br/>processing_statistics_*.csv"]
-        H4["Write Text Summary<br/>processing_summary_*.txt"]
-        H5["Create JSON Metadata<br/>processing_metadata_*.json"]
+        H1["Generate New Buildings Summary<br/>new_buildings.csv"]
+        H2["Create Changes Summary<br/>building_changes_summary.csv"]
+        H3["Compile Statistics Report<br/>processing_statistics.csv"]
+        H4["Write Text Summary<br/>processing_summary.txt"]
+        H5["Create JSON Metadata<br/>processing_metadata.json"]
     end
     
     subgraph subGraph8["📤 Output & Notification"]
