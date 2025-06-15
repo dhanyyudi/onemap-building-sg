@@ -1,3 +1,10 @@
 Error with postal code 204687: Server disconnected
 Error with postal code 764165: HTTP 502
 Error with postal code 764159: HTTP 502
+Error with postal code 261132: HTTP 502
+Error with postal code 279869: HTTP 502
+Error with postal code 422990: Server disconnected
+Error with postal code 561779: Server disconnected
+Error with postal code 592032: HTTP 502
+Error with postal code 592022: HTTP 502
+Error with postal code 605041: HTTP 502

@@ -1,0 +1,37 @@
+{
+  "processing_date": "15/06/2025",
+  "stats": {
+    "original_records": 63,
+    "excluded_records": 8,
+    "final_records": 0,
+    "residential_count": 23,
+    "non_residential_count": 29,
+    "corrections_applied": 0,
+    "duplicates_removed": 3
+  },
+  "final_count": 52,
+  "files_generated": [
+    "corrected_differences_onemap_15062025.csv",
+    "new_buildings_15_06_2025.csv",
+    "building_changes_summary_15_06_2025.csv",
+    "processing_statistics_15_06_2025.csv",
+    "processing_summary_15_06_2025.txt"
+  ],
+  "exclusion_examples": [
+    {
+      "postal_code": "569205",
+      "name": "CHENG SAN COMMUNITY CLUB (U/C)",
+      "street": "ANG MO KIO STREET 53"
+    },
+    {
+      "postal_code": "556129",
+      "name": "BRADDELL HEIGHTS COMMUNITY CLUB (U/C)",
+      "street": "SERANGOON AVENUE 2"
+    },
+    {
+      "postal_code": "738526",
+      "name": "WOODLANDS COMMUNITY CLUB (U/C)",
+      "street": "WOODLANDS STREET 81"
+    }
+  ]
+}

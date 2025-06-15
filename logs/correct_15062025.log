@@ -1,0 +1,44 @@
+2025-06-15 04:05:07,494 - INFO - Loading data from data/differences_onemap_15062025.csv
+2025-06-15 04:05:07,496 - INFO - Loaded 63 records
+2025-06-15 04:05:07,497 - INFO - Filtering out buildings under construction and temporary site offices...
+2025-06-15 04:05:07,500 - INFO - Excluded 8 buildings (under construction/temporary)
+2025-06-15 04:05:07,501 - INFO - Remaining records for processing: 55
+2025-06-15 04:05:07,501 - INFO - Examples of excluded buildings:
+2025-06-15 04:05:07,501 - INFO -   - 569205: CHENG SAN COMMUNITY CLUB (U/C) at ANG MO KIO STREET 53
+2025-06-15 04:05:07,501 - INFO -   - 556129: BRADDELL HEIGHTS COMMUNITY CLUB (U/C) at SERANGOON AVENUE 2
+2025-06-15 04:05:07,501 - INFO -   - 738526: WOODLANDS COMMUNITY CLUB (U/C) at WOODLANDS STREET 81
+2025-06-15 04:05:07,501 - INFO -   - 479220: EUNOS COMMUNITY CLUB (U/C) at BEDOK RESERVOIR ROAD
+2025-06-15 04:05:07,501 - INFO -   - 738581: FUCHUN COMMUNITY CLUB (U/C) at WOODLANDS STREET 31
+2025-06-15 04:05:07,502 - INFO - Excluded records saved to data/correction_differences_onemap_15062025_excluded.csv
+2025-06-15 04:05:07,503 - INFO - Found 1 unique postal codes with duplicates
+2025-06-15 04:05:07,503 - INFO - Total records with duplicate postal codes: 4
+2025-06-15 04:05:07,503 - INFO - Starting deduplication process...
+2025-06-15 04:05:07,503 - INFO - Calculating parent building scores...
+2025-06-15 04:05:07,509 - INFO - Added 51 non-duplicate records to result
+2025-06-15 04:05:07,511 - INFO - Selected 1 parent buildings from duplicate groups
+2025-06-15 04:05:07,511 - INFO - Removed 3 duplicate records
+2025-06-15 04:05:07,511 - INFO - Total records in deduplicated dataset: 52
+2025-06-15 04:05:07,511 - INFO - Applying naming conventions...
+2025-06-15 04:05:07,519 - INFO - Classified buildings: 23 residential, 29 non-residential
+2025-06-15 04:05:07,524 - INFO - Naming conventions applied successfully
+2025-06-15 04:05:07,524 - INFO - Generating summary files for Slack integration...
+2025-06-15 04:05:07,526 - INFO - Generated new buildings summary: data/new_buildings_15_06_2025.csv
+2025-06-15 04:05:07,532 - INFO - Generated changes summary: data/building_changes_summary_15_06_2025.csv
+2025-06-15 04:05:07,532 - INFO - Generated statistics summary: data/processing_statistics_15_06_2025.csv
+2025-06-15 04:05:07,532 - INFO - Generated text summary: data/processing_summary_15_06_2025.txt
+2025-06-15 04:05:07,533 - INFO - Generated metadata file: data/processing_metadata_15_06_2025.json
+2025-06-15 04:05:07,533 - INFO - Validated metadata JSON structure: 5 keys
+2025-06-15 04:05:07,534 - INFO - Corrected dataset saved to data/correction_differences_onemap_15062025.csv
+2025-06-15 04:05:07,534 - INFO - ============================================================
+2025-06-15 04:05:07,534 - INFO - ENHANCED CORRECTION SUMMARY
+2025-06-15 04:05:07,534 - INFO - ============================================================
+2025-06-15 04:05:07,534 - INFO - Original records: 63
+2025-06-15 04:05:07,534 - INFO - Excluded records: 8 (12.70%)
+2025-06-15 04:05:07,534 - INFO - Corrected records: 52
+2025-06-15 04:05:07,534 - INFO - Duplicates removed: 3
+2025-06-15 04:05:07,534 - INFO - Net records reduction: 11 (17.46%)
+2025-06-15 04:05:07,534 - INFO - Residential buildings: 23 (44.23%)
+2025-06-15 04:05:07,534 - INFO - Non-residential buildings: 29 (55.77%)
+2025-06-15 04:05:07,534 - INFO - ============================================================
+2025-06-15 04:05:07,535 - INFO - Enhanced correction process completed in 0.04 seconds
+2025-06-15 04:05:07,535 - INFO - ✅ Enhanced correction process completed successfully!
