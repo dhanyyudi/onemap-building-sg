@@ -1,0 +1,44 @@
+2025-07-15 04:08:29,468 - INFO - Loading data from data/differences_onemap_15072025.csv
+2025-07-15 04:08:29,470 - INFO - Loaded 175 records
+2025-07-15 04:08:29,471 - INFO - Filtering out buildings under construction and temporary site offices...
+2025-07-15 04:08:29,479 - INFO - Excluded 10 buildings (under construction/temporary)
+2025-07-15 04:08:29,479 - INFO - Remaining records for processing: 165
+2025-07-15 04:08:29,479 - INFO - Examples of excluded buildings:
+2025-07-15 04:08:29,479 - INFO -   - 129634: CLEMENTI POLYCLINIC (U/C) at CLEMENTI CLOSE
+2025-07-15 04:08:29,480 - INFO -   - 519660: TEMPORARY SITE OFFICE at PASIR RIS STREET 21
+2025-07-15 04:08:29,480 - INFO -   - 638626: SITE OFFICE at TUAS SOUTH EDGE
+2025-07-15 04:08:29,480 - INFO -   - 738581: FUCHUN COMMUNITY CLUB (U/C) at WOODLANDS STREET 31
+2025-07-15 04:08:29,480 - INFO -   - 479220: EUNOS COMMUNITY CLUB (U/C) at BEDOK RESERVOIR ROAD
+2025-07-15 04:08:29,481 - INFO - Excluded records saved to data/correction_differences_onemap_15072025_excluded.csv
+2025-07-15 04:08:29,482 - INFO - Found 6 unique postal codes with duplicates
+2025-07-15 04:08:29,482 - INFO - Total records with duplicate postal codes: 21
+2025-07-15 04:08:29,482 - INFO - Starting deduplication process...
+2025-07-15 04:08:29,482 - INFO - Calculating parent building scores...
+2025-07-15 04:08:29,493 - INFO - Added 144 non-duplicate records to result
+2025-07-15 04:08:29,502 - INFO - Selected 6 parent buildings from duplicate groups
+2025-07-15 04:08:29,502 - INFO - Removed 15 duplicate records
+2025-07-15 04:08:29,502 - INFO - Total records in deduplicated dataset: 150
+2025-07-15 04:08:29,503 - INFO - Applying naming conventions...
+2025-07-15 04:08:29,525 - INFO - Classified buildings: 85 residential, 65 non-residential
+2025-07-15 04:08:29,534 - INFO - Naming conventions applied successfully
+2025-07-15 04:08:29,534 - INFO - Generating summary files for Slack integration...
+2025-07-15 04:08:29,536 - INFO - Generated new buildings summary: data/new_buildings_15_07_2025.csv
+2025-07-15 04:08:29,548 - INFO - Generated changes summary: data/building_changes_summary_15_07_2025.csv
+2025-07-15 04:08:29,549 - INFO - Generated statistics summary: data/processing_statistics_15_07_2025.csv
+2025-07-15 04:08:29,549 - INFO - Generated text summary: data/processing_summary_15_07_2025.txt
+2025-07-15 04:08:29,550 - INFO - Generated metadata file: data/processing_metadata_15_07_2025.json
+2025-07-15 04:08:29,550 - INFO - Validated metadata JSON structure: 5 keys
+2025-07-15 04:08:29,552 - INFO - Corrected dataset saved to data/correction_differences_onemap_15072025.csv
+2025-07-15 04:08:29,552 - INFO - ============================================================
+2025-07-15 04:08:29,552 - INFO - ENHANCED CORRECTION SUMMARY
+2025-07-15 04:08:29,552 - INFO - ============================================================
+2025-07-15 04:08:29,552 - INFO - Original records: 175
+2025-07-15 04:08:29,552 - INFO - Excluded records: 10 (5.71%)
+2025-07-15 04:08:29,552 - INFO - Corrected records: 150
+2025-07-15 04:08:29,552 - INFO - Duplicates removed: 15
+2025-07-15 04:08:29,552 - INFO - Net records reduction: 25 (14.29%)
+2025-07-15 04:08:29,552 - INFO - Residential buildings: 85 (56.67%)
+2025-07-15 04:08:29,552 - INFO - Non-residential buildings: 65 (43.33%)
+2025-07-15 04:08:29,552 - INFO - ============================================================
+2025-07-15 04:08:29,552 - INFO - Enhanced correction process completed in 0.08 seconds
+2025-07-15 04:08:29,552 - INFO - ✅ Enhanced correction process completed successfully!

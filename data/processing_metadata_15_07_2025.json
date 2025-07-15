@@ -1,0 +1,37 @@
+{
+  "processing_date": "15/07/2025",
+  "stats": {
+    "original_records": 175,
+    "excluded_records": 10,
+    "final_records": 0,
+    "residential_count": 85,
+    "non_residential_count": 65,
+    "corrections_applied": 0,
+    "duplicates_removed": 15
+  },
+  "final_count": 150,
+  "files_generated": [
+    "corrected_differences_onemap_15072025.csv",
+    "new_buildings_15_07_2025.csv",
+    "building_changes_summary_15_07_2025.csv",
+    "processing_statistics_15_07_2025.csv",
+    "processing_summary_15_07_2025.txt"
+  ],
+  "exclusion_examples": [
+    {
+      "postal_code": "129634",
+      "name": "CLEMENTI POLYCLINIC (U/C)",
+      "street": "CLEMENTI CLOSE"
+    },
+    {
+      "postal_code": "519660",
+      "name": "TEMPORARY SITE OFFICE",
+      "street": "PASIR RIS STREET 21"
+    },
+    {
+      "postal_code": "638626",
+      "name": "SITE OFFICE",
+      "street": "TUAS SOUTH EDGE"
+    }
+  ]
+}
