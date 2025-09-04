@@ -1,0 +1,44 @@
+2025-09-04 14:39:35,505 - INFO - Loading data from data/differences_onemap_04092025.csv
+2025-09-04 14:39:35,509 - INFO - Loaded 890 records
+2025-09-04 14:39:35,510 - INFO - Filtering out buildings under construction and temporary site offices...
+2025-09-04 14:39:35,541 - INFO - Excluded 402 buildings (under construction/temporary)
+2025-09-04 14:39:35,541 - INFO - Remaining records for processing: 488
+2025-09-04 14:39:35,541 - INFO - Examples of excluded buildings:
+2025-09-04 14:39:35,541 - INFO -   - 119317: LYNDENWOODS (U/C) at SCIENCE PARK DRIVE
+2025-09-04 14:39:35,541 - INFO -   - 129634: CLEMENTI POLYCLINIC (U/C) at CLEMENTI CLOSE
+2025-09-04 14:39:35,541 - INFO -   - 169555: ZYON GRAND (U/C) at KIM SENG ROAD
+2025-09-04 14:39:35,541 - INFO -   - 169557: ZYON GRAND (U/C) at KIM SENG ROAD
+2025-09-04 14:39:35,542 - INFO -   - 169558: ZYON GRAND (U/C) at KIM SENG ROAD
+2025-09-04 14:39:35,545 - INFO - Excluded records saved to data/correction_differences_onemap_04092025_excluded.csv
+2025-09-04 14:39:35,546 - INFO - Found 7 unique postal codes with duplicates
+2025-09-04 14:39:35,546 - INFO - Total records with duplicate postal codes: 23
+2025-09-04 14:39:35,546 - INFO - Starting deduplication process...
+2025-09-04 14:39:35,546 - INFO - Calculating parent building scores...
+2025-09-04 14:39:35,573 - INFO - Added 465 non-duplicate records to result
+2025-09-04 14:39:35,584 - INFO - Selected 7 parent buildings from duplicate groups
+2025-09-04 14:39:35,584 - INFO - Removed 16 duplicate records
+2025-09-04 14:39:35,584 - INFO - Total records in deduplicated dataset: 472
+2025-09-04 14:39:35,585 - INFO - Applying naming conventions...
+2025-09-04 14:39:35,663 - INFO - Classified buildings: 359 residential, 113 non-residential
+2025-09-04 14:39:35,689 - INFO - Naming conventions applied successfully
+2025-09-04 14:39:35,689 - INFO - Generating summary files for Slack integration...
+2025-09-04 14:39:35,692 - INFO - Generated new buildings summary: data/new_buildings_04_09_2025.csv
+2025-09-04 14:39:35,725 - INFO - Generated changes summary: data/building_changes_summary_04_09_2025.csv
+2025-09-04 14:39:35,726 - INFO - Generated statistics summary: data/processing_statistics_04_09_2025.csv
+2025-09-04 14:39:35,726 - INFO - Generated text summary: data/processing_summary_04_09_2025.txt
+2025-09-04 14:39:35,726 - INFO - Generated metadata file: data/processing_metadata_04_09_2025.json
+2025-09-04 14:39:35,726 - INFO - Validated metadata JSON structure: 5 keys
+2025-09-04 14:39:35,730 - INFO - Corrected dataset saved to data/correction_differences_onemap_04092025.csv
+2025-09-04 14:39:35,730 - INFO - ============================================================
+2025-09-04 14:39:35,730 - INFO - ENHANCED CORRECTION SUMMARY
+2025-09-04 14:39:35,730 - INFO - ============================================================
+2025-09-04 14:39:35,730 - INFO - Original records: 890
+2025-09-04 14:39:35,730 - INFO - Excluded records: 402 (45.17%)
+2025-09-04 14:39:35,730 - INFO - Corrected records: 472
+2025-09-04 14:39:35,730 - INFO - Duplicates removed: 16
+2025-09-04 14:39:35,731 - INFO - Net records reduction: 418 (46.97%)
+2025-09-04 14:39:35,731 - INFO - Residential buildings: 359 (76.06%)
+2025-09-04 14:39:35,731 - INFO - Non-residential buildings: 113 (23.94%)
+2025-09-04 14:39:35,731 - INFO - ============================================================
+2025-09-04 14:39:35,731 - INFO - Enhanced correction process completed in 0.23 seconds
+2025-09-04 14:39:35,731 - INFO - ✅ Enhanced correction process completed successfully!

@@ -10,3 +10,6 @@ Error with postal code 592022: HTTP 502
 Error with postal code 605041: HTTP 502
 Error with postal code 077032: HTTP 502
 Error with postal code 758988: HTTP 502
+Error with postal code 098444: HTTP 502
+Error with postal code 457002: HTTP 502
+Error with postal code 553066: HTTP 502

@@ -1,0 +1,37 @@
+{
+  "processing_date": "04/09/2025",
+  "stats": {
+    "original_records": 890,
+    "excluded_records": 402,
+    "final_records": 0,
+    "residential_count": 359,
+    "non_residential_count": 113,
+    "corrections_applied": 0,
+    "duplicates_removed": 16
+  },
+  "final_count": 472,
+  "files_generated": [
+    "corrected_differences_onemap_04092025.csv",
+    "new_buildings_04_09_2025.csv",
+    "building_changes_summary_04_09_2025.csv",
+    "processing_statistics_04_09_2025.csv",
+    "processing_summary_04_09_2025.txt"
+  ],
+  "exclusion_examples": [
+    {
+      "postal_code": "119317",
+      "name": "LYNDENWOODS (U/C)",
+      "street": "SCIENCE PARK DRIVE"
+    },
+    {
+      "postal_code": "129634",
+      "name": "CLEMENTI POLYCLINIC (U/C)",
+      "street": "CLEMENTI CLOSE"
+    },
+    {
+      "postal_code": "169555",
+      "name": "ZYON GRAND (U/C)",
+      "street": "KIM SENG ROAD"
+    }
+  ]
+}
