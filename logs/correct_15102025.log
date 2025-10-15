@@ -1,0 +1,44 @@
+2025-10-15 03:55:34,086 - INFO - Loading data from data/differences_onemap_15102025.csv
+2025-10-15 03:55:34,090 - INFO - Loaded 1229 records
+2025-10-15 03:55:34,091 - INFO - Filtering out buildings under construction and temporary site offices...
+2025-10-15 03:55:34,133 - INFO - Excluded 412 buildings (under construction/temporary)
+2025-10-15 03:55:34,133 - INFO - Remaining records for processing: 817
+2025-10-15 03:55:34,133 - INFO - Examples of excluded buildings:
+2025-10-15 03:55:34,133 - INFO -   - 119317: LYNDENWOODS (U/C) at SCIENCE PARK DRIVE
+2025-10-15 03:55:34,134 - INFO -   - 129624: FABER RESIDENCE (U/C) at FABER WALK
+2025-10-15 03:55:34,134 - INFO -   - 129625: FABER RESIDENCE (U/C) at FABER WALK
+2025-10-15 03:55:34,134 - INFO -   - 129626: FABER RESIDENCE (U/C) at FABER WALK
+2025-10-15 03:55:34,134 - INFO -   - 129627: FABER RESIDENCE (U/C) at FABER WALK
+2025-10-15 03:55:34,138 - INFO - Excluded records saved to data/correction_differences_onemap_15102025_excluded.csv
+2025-10-15 03:55:34,138 - INFO - Found 12 unique postal codes with duplicates
+2025-10-15 03:55:34,139 - INFO - Total records with duplicate postal codes: 77
+2025-10-15 03:55:34,139 - INFO - Starting deduplication process...
+2025-10-15 03:55:34,139 - INFO - Calculating parent building scores...
+2025-10-15 03:55:34,180 - INFO - Added 740 non-duplicate records to result
+2025-10-15 03:55:34,199 - INFO - Selected 12 parent buildings from duplicate groups
+2025-10-15 03:55:34,199 - INFO - Removed 65 duplicate records
+2025-10-15 03:55:34,199 - INFO - Total records in deduplicated dataset: 752
+2025-10-15 03:55:34,199 - INFO - Applying naming conventions...
+2025-10-15 03:55:34,310 - INFO - Classified buildings: 586 residential, 166 non-residential
+2025-10-15 03:55:34,350 - INFO - Naming conventions applied successfully
+2025-10-15 03:55:34,350 - INFO - Generating summary files for Slack integration...
+2025-10-15 03:55:34,353 - INFO - Generated new buildings summary: data/new_buildings_15_10_2025.csv
+2025-10-15 03:55:34,404 - INFO - Generated changes summary: data/building_changes_summary_15_10_2025.csv
+2025-10-15 03:55:34,405 - INFO - Generated statistics summary: data/processing_statistics_15_10_2025.csv
+2025-10-15 03:55:34,405 - INFO - Generated text summary: data/processing_summary_15_10_2025.txt
+2025-10-15 03:55:34,405 - INFO - Generated metadata file: data/processing_metadata_15_10_2025.json
+2025-10-15 03:55:34,405 - INFO - Validated metadata JSON structure: 5 keys
+2025-10-15 03:55:34,411 - INFO - Corrected dataset saved to data/correction_differences_onemap_15102025.csv
+2025-10-15 03:55:34,411 - INFO - ============================================================
+2025-10-15 03:55:34,411 - INFO - ENHANCED CORRECTION SUMMARY
+2025-10-15 03:55:34,411 - INFO - ============================================================
+2025-10-15 03:55:34,411 - INFO - Original records: 1,229
+2025-10-15 03:55:34,411 - INFO - Excluded records: 412 (33.52%)
+2025-10-15 03:55:34,411 - INFO - Corrected records: 752
+2025-10-15 03:55:34,411 - INFO - Duplicates removed: 65
+2025-10-15 03:55:34,411 - INFO - Net records reduction: 477 (38.81%)
+2025-10-15 03:55:34,411 - INFO - Residential buildings: 586 (77.93%)
+2025-10-15 03:55:34,411 - INFO - Non-residential buildings: 166 (22.07%)
+2025-10-15 03:55:34,412 - INFO - ============================================================
+2025-10-15 03:55:34,412 - INFO - Enhanced correction process completed in 0.33 seconds
+2025-10-15 03:55:34,412 - INFO - ✅ Enhanced correction process completed successfully!
