@@ -15,3 +15,5 @@ Error with postal code 457002: HTTP 502
 Error with postal code 553066: HTTP 502
 Error with postal code 067143: HTTP 502
 Error with postal code 311347: HTTP 502
+Error with postal code 026092: HTTP 502
+Error with postal code 806244: Page 1 timeout
