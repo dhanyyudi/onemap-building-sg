@@ -1,0 +1,55 @@
+2025-12-31 11:05:16,256 - INFO - Loading previous data from data/onemap_28052025.csv
+2025-12-31 11:05:16,365 - INFO - Previous dataset: 141113 records
+2025-12-31 11:05:16,365 - INFO - Loading current data from data/onemap_31122025.csv
+2025-12-31 11:05:16,469 - INFO - Current dataset: 141669 records
+2025-12-31 11:05:16,522 - INFO - Comparing datasets to identify differences...
+2025-12-31 11:05:16,593 - INFO - Found 575 new buildings
+2025-12-31 11:05:16,611 - INFO - Found 133840 buildings in both datasets
+/home/runner/work/onemap-building-sg/onemap-building-sg/scripts/onemap_building_compare.py:183: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  changes = pd.concat([changes, pd.DataFrame([row_data])], ignore_index=True)
+2025-12-31 11:09:36,085 - INFO - Location change detected for 259569_1: 589.70 meters
+2025-12-31 11:12:13,908 - INFO - Location change detected for 68811_8: 315.81 meters
+2025-12-31 11:14:30,894 - INFO - Location change detected for 627877_50: 347.98 meters
+2025-12-31 11:16:22,855 - INFO - Location change detected for 18953_18: 519.43 meters
+2025-12-31 11:16:35,346 - INFO - Location change detected for 609142_59: 355.39 meters
+2025-12-31 11:17:00,974 - INFO - Location change detected for 308433_11: 490.22 meters
+2025-12-31 11:17:07,939 - INFO - Location change detected for 627832_51: 475.93 meters
+2025-12-31 11:18:10,835 - INFO - Location change detected for 627807_61: 626.44 meters
+2025-12-31 11:21:02,007 - INFO - Location change detected for 588398_601: 659.55 meters
+2025-12-31 11:21:50,574 - INFO - Location change detected for 628277_100: 956.69 meters
+2025-12-31 11:23:19,873 - INFO - Location change detected for 627869_5: 568.44 meters
+2025-12-31 11:23:24,202 - INFO - Location change detected for 729826_80: 449.06 meters
+2025-12-31 11:23:26,991 - INFO - Location change detected for 637607_60: 707.97 meters
+2025-12-31 11:24:02,034 - INFO - Location change detected for 679525_201: 698.18 meters
+2025-12-31 11:26:36,980 - INFO - Location change detected for 357875_65: 549.26 meters
+2025-12-31 11:26:50,303 - INFO - Location change detected for 627886_17: 442.05 meters
+2025-12-31 11:30:06,480 - INFO - Location change detected for 118326_1: 823.33 meters
+2025-12-31 11:30:13,013 - INFO - Total differences found: 1510
+2025-12-31 11:30:13,013 - INFO -   - New buildings: 575
+2025-12-31 11:30:13,013 - INFO -   - Name changes: 882
+2025-12-31 11:30:13,013 - INFO -   - Location changes: 17 (threshold: 300.0 meters)
+2025-12-31 11:30:13,027 - INFO - Differences saved to data/differences_onemap_31122025.csv
+2025-12-31 11:30:13,027 - INFO - 
+==================================================
+ONEMAP BUILDING DATA COMPARISON REPORT
+==================================================
+Previous dataset: data/onemap_28052025.csv
+Current dataset: data/onemap_31122025.csv
+Differences output: data/differences_onemap_31122025.csv
+
+STATISTICS
+--------------------------------------------------
+Previous dataset records: 141113
+Current dataset records: 141669
+Total differences found: 1510
+  - New buildings: 575
+  - Name changes: 882
+  - Location changes: 17 (distance > 300.0 meters)
+
+SUMMARY
+--------------------------------------------------
+Net change in records: 556 (0.39%)
+
+Report generated on: 2025-12-31 11:30:13
+==================================================
+2025-12-31 11:30:13,027 - INFO - Report saved to data/differences_onemap_31122025_report.txt

@@ -1,0 +1,37 @@
+{
+  "processing_date": "31/12/2025",
+  "stats": {
+    "original_records": 1510,
+    "excluded_records": 419,
+    "final_records": 0,
+    "residential_count": 831,
+    "non_residential_count": 196,
+    "corrections_applied": 0,
+    "duplicates_removed": 64
+  },
+  "final_count": 1027,
+  "files_generated": [
+    "corrected_differences_onemap_31122025.csv",
+    "new_buildings_31_12_2025.csv",
+    "building_changes_summary_31_12_2025.csv",
+    "processing_statistics_31_12_2025.csv",
+    "processing_summary_31_12_2025.txt"
+  ],
+  "exclusion_examples": [
+    {
+      "postal_code": "119317",
+      "name": "LYNDENWOODS (U/C)",
+      "street": "SCIENCE PARK DRIVE"
+    },
+    {
+      "postal_code": "129624",
+      "name": "FABER RESIDENCE (U/C)",
+      "street": "FABER WALK"
+    },
+    {
+      "postal_code": "129625",
+      "name": "FABER RESIDENCE (U/C)",
+      "street": "FABER WALK"
+    }
+  ]
+}

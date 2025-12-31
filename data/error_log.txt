@@ -1023,3 +1023,16 @@ Error with postal code 178870: HTTP 502
 Error with postal code 299750: HTTP 502
 Error with postal code 484187: HTTP 502
 Error with postal code 554001: HTTP 502
+Error with postal code 105528: HTTP 502
+Error with postal code 147155: HTTP 502
+Error with postal code 230923: HTTP 502
+Error with postal code 232149: HTTP 502
+Error with postal code 336678: HTTP 502
+Error with postal code 458159: HTTP 502
+Error with postal code 463855: HTTP 502
+Error with postal code 470954: HTTP 502
+Error with postal code 486030: HTTP 502
+Error with postal code 576380: HTTP 502
+Error with postal code 779997: HTTP 502
+Error with postal code 826746: HTTP 502
+Error with postal code 828161: HTTP 502
