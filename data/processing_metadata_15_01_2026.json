@@ -1,0 +1,21 @@
+{
+  "processing_date": "15/01/2026",
+  "stats": {
+    "original_records": 32,
+    "excluded_records": 0,
+    "final_records": 0,
+    "residential_count": 23,
+    "non_residential_count": 6,
+    "corrections_applied": 0,
+    "duplicates_removed": 3
+  },
+  "final_count": 29,
+  "files_generated": [
+    "corrected_differences_onemap_15012026.csv",
+    "new_buildings_15_01_2026.csv",
+    "building_changes_summary_15_01_2026.csv",
+    "processing_statistics_15_01_2026.csv",
+    "processing_summary_15_01_2026.txt"
+  ],
+  "exclusion_examples": []
+}
