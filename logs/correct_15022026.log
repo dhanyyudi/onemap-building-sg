@@ -1,0 +1,44 @@
+2026-02-15 05:20:03,152 - INFO - Loading data from data/differences_onemap_15022026.csv
+2026-02-15 05:20:03,155 - INFO - Loaded 391 records
+2026-02-15 05:20:03,155 - INFO - Filtering out buildings under construction and temporary site offices...
+2026-02-15 05:20:03,172 - INFO - Excluded 22 buildings (under construction/temporary)
+2026-02-15 05:20:03,172 - INFO - Remaining records for processing: 369
+2026-02-15 05:20:03,172 - INFO - Examples of excluded buildings:
+2026-02-15 05:20:03,173 - INFO -   - 239638: RIVER MODERN (U/C) at RIVER VALLEY GREEN
+2026-02-15 05:20:03,173 - INFO -   - 239641: RIVER MODERN (U/C) at RIVER VALLEY GREEN
+2026-02-15 05:20:03,173 - INFO -   - 239642: RIVER MODERN (U/C) at RIVER VALLEY GREEN
+2026-02-15 05:20:03,173 - INFO -   - 449984: MARINE PARADE COMMUNITY CLUB (U/C) at MARINE DRIVE
+2026-02-15 05:20:03,173 - INFO -   - 499868: TEMPORARY SITE OFFICE at TANAH MERAH COAST ROAD
+2026-02-15 05:20:03,175 - INFO - Excluded records saved to data/correction_differences_onemap_15022026_excluded.csv
+2026-02-15 05:20:03,175 - INFO - Found 3 unique postal codes with duplicates
+2026-02-15 05:20:03,175 - INFO - Total records with duplicate postal codes: 7
+2026-02-15 05:20:03,175 - INFO - Starting deduplication process...
+2026-02-15 05:20:03,175 - INFO - Calculating parent building scores...
+2026-02-15 05:20:03,196 - INFO - Added 362 non-duplicate records to result
+2026-02-15 05:20:03,202 - INFO - Selected 3 parent buildings from duplicate groups
+2026-02-15 05:20:03,202 - INFO - Removed 4 duplicate records
+2026-02-15 05:20:03,202 - INFO - Total records in deduplicated dataset: 365
+2026-02-15 05:20:03,202 - INFO - Applying naming conventions...
+2026-02-15 05:20:03,268 - INFO - Classified buildings: 297 residential, 68 non-residential
+2026-02-15 05:20:03,298 - INFO - Naming conventions applied successfully
+2026-02-15 05:20:03,298 - INFO - Generating summary files for Slack integration...
+2026-02-15 05:20:03,301 - INFO - Generated new buildings summary: data/new_buildings_15_02_2026.csv
+2026-02-15 05:20:03,327 - INFO - Generated changes summary: data/building_changes_summary_15_02_2026.csv
+2026-02-15 05:20:03,328 - INFO - Generated statistics summary: data/processing_statistics_15_02_2026.csv
+2026-02-15 05:20:03,328 - INFO - Generated text summary: data/processing_summary_15_02_2026.txt
+2026-02-15 05:20:03,329 - INFO - Generated metadata file: data/processing_metadata_15_02_2026.json
+2026-02-15 05:20:03,329 - INFO - Validated metadata JSON structure: 5 keys
+2026-02-15 05:20:03,332 - INFO - Corrected dataset saved to data/correction_differences_onemap_15022026.csv
+2026-02-15 05:20:03,332 - INFO - ============================================================
+2026-02-15 05:20:03,332 - INFO - ENHANCED CORRECTION SUMMARY
+2026-02-15 05:20:03,332 - INFO - ============================================================
+2026-02-15 05:20:03,332 - INFO - Original records: 391
+2026-02-15 05:20:03,332 - INFO - Excluded records: 22 (5.63%)
+2026-02-15 05:20:03,332 - INFO - Corrected records: 365
+2026-02-15 05:20:03,332 - INFO - Duplicates removed: 4
+2026-02-15 05:20:03,332 - INFO - Net records reduction: 26 (6.65%)
+2026-02-15 05:20:03,332 - INFO - Residential buildings: 297 (81.37%)
+2026-02-15 05:20:03,332 - INFO - Non-residential buildings: 68 (18.63%)
+2026-02-15 05:20:03,332 - INFO - ============================================================
+2026-02-15 05:20:03,332 - INFO - Enhanced correction process completed in 0.18 seconds
+2026-02-15 05:20:03,333 - INFO - ✅ Enhanced correction process completed successfully!

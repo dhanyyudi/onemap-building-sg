@@ -1081,3 +1081,17 @@ Error with postal code 302995: HTTP 504
 Error with postal code 528800: HTTP 502
 Error with postal code 534047: HTTP 502
 Error with postal code 596813: HTTP 502
+Error with postal code 037971: HTTP 502
+Error with postal code 129256: HTTP 502
+Error with postal code 236045: HTTP 502
+Error with postal code 262051: HTTP 502
+Error with postal code 364055: HTTP 502
+Error with postal code 364024: HTTP 502
+Error with postal code 365029: HTTP 502
+Error with postal code 596152: HTTP 502
+Error with postal code 596157: HTTP 502
+Error with postal code 596168: HTTP 502
+Error with postal code 596177: HTTP 502
+Error with postal code 757071: HTTP 502
+Error with postal code 784010: HTTP 502
+Error with postal code 825937: HTTP 502
