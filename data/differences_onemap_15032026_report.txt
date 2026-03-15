@@ -1,0 +1,22 @@
+==================================================
+ONEMAP BUILDING DATA COMPARISON REPORT
+==================================================
+Previous dataset: data/onemap_31122025.csv
+Current dataset: data/onemap_15032026.csv
+Differences output: data/differences_onemap_15032026.csv
+
+STATISTICS
+--------------------------------------------------
+Previous dataset records: 141669
+Current dataset records: 2355
+Total differences found: 8
+  - New buildings: 5
+  - Name changes: 2
+  - Location changes: 1 (distance > 300.0 meters)
+
+SUMMARY
+--------------------------------------------------
+Net change in records: -139314 (-98.34%)
+
+Report generated on: 2026-03-15 03:34:55
+==================================================

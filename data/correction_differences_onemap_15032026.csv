@@ -1,0 +1,9 @@
+blk_no,street,postal_code,name,lat,lon,change_type,prev_name,prev_lat,prev_lon,location_change_meters,is_non_residential,name_formatted,address_formatted
+13,BALMORAL CRESCENT,259974,NIL,1.31597061696877,103.834988101755,new_building,,,,,False,13 Balmoral Crescent,"13 Balmoral Crescent, Singapore 259974"
+969B,BAH SOON PAH ROAD,762969,CHENCHARU GROVE,1.41765683357101,103.828883523127,new_building,,,,,False,969B Bah Soon Pah Road,"969B Bah Soon Pah Road, Singapore 762969"
+971B,BAH SOON PAH ROAD,762971,CHENCHARU GROVE,1.41702241748973,103.829341212311,new_building,,,,,False,971B Bah Soon Pah Road,"971B Bah Soon Pah Road, Singapore 762971"
+42,LUXUS HILL HEIGHTS,804101,LUXUS HILLS,1.38174400229491,103.875136614744,new_building,,,,,False,42 Luxus Hill Heights,"42 Luxus Hill Heights, Singapore 804101"
+45,LUXUS HILL HEIGHTS,804104,LUXUS HILLS,1.38147645085056,103.874537325239,new_building,,,,,False,45 Luxus Hill Heights,"45 Luxus Hill Heights, Singapore 804104"
+20,JURONG WEST STREET 92,649000,JIN FU GONG TEMPLE,1.34101662020091,103.690499289121,name_change,NIL,1.34079304701319,103.690470022063,,True,Jin Fu Gong Temple,"20 Jurong West Street 92 Jin Fu Gong Temple, Singapore 649000"
+50,GUL ROAD,629351,NIL,1.28789604261493,103.665469812875,location_change,NIL,1.29275911265389,103.668876550303,660.1779135635131,False,50 Gul Road,"50 Gul Road, Singapore 629351"
+501,OLD CHOA CHU KANG ROAD,698928,HOME TEAM ACADEMY (BLK 10),1.37187204750828,103.720870792771,name_change,HOME TEAM ACADEMY (BLK 1),1.3728276965341,103.722414544985,,True,Home Team Academy (blk 10),"501 Old Choa Chu Kang Road Home Team Academy (blk 10), Singapore 698928"
