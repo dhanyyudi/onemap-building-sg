@@ -1,0 +1,40 @@
+2026-04-15 05:00:26,745 - INFO - Loading data from data/differences_onemap_15042026.csv
+2026-04-15 05:00:26,747 - INFO - Loaded 16 records
+2026-04-15 05:00:26,748 - INFO - Filtering out buildings under construction and temporary site offices...
+2026-04-15 05:00:26,750 - INFO - Excluded 1 buildings (under construction/temporary)
+2026-04-15 05:00:26,750 - INFO - Remaining records for processing: 15
+2026-04-15 05:00:26,750 - INFO - Examples of excluded buildings:
+2026-04-15 05:00:26,750 - INFO -   - 479993: PINERY RESIDENCES (U/C) at BEDOK RESERVOIR ROAD
+2026-04-15 05:00:26,751 - INFO - Excluded records saved to data/correction_differences_onemap_15042026_excluded.csv
+2026-04-15 05:00:26,752 - INFO - Found 0 unique postal codes with duplicates
+2026-04-15 05:00:26,752 - INFO - Total records with duplicate postal codes: 0
+2026-04-15 05:00:26,752 - INFO - Starting deduplication process...
+2026-04-15 05:00:26,752 - INFO - Calculating parent building scores...
+2026-04-15 05:00:26,756 - INFO - Added 15 non-duplicate records to result
+2026-04-15 05:00:26,756 - INFO - Selected 0 parent buildings from duplicate groups
+2026-04-15 05:00:26,756 - INFO - Removed 0 duplicate records
+2026-04-15 05:00:26,756 - INFO - Total records in deduplicated dataset: 15
+2026-04-15 05:00:26,756 - INFO - Applying naming conventions...
+2026-04-15 05:00:26,760 - INFO - Classified buildings: 6 residential, 9 non-residential
+2026-04-15 05:00:26,762 - INFO - Naming conventions applied successfully
+2026-04-15 05:00:26,762 - INFO - Generating summary files for Slack integration...
+2026-04-15 05:00:26,764 - INFO - Generated new buildings summary: data/new_buildings_15_04_2026.csv
+2026-04-15 05:00:26,767 - INFO - Generated changes summary: data/building_changes_summary_15_04_2026.csv
+2026-04-15 05:00:26,768 - INFO - Generated statistics summary: data/processing_statistics_15_04_2026.csv
+2026-04-15 05:00:26,768 - INFO - Generated text summary: data/processing_summary_15_04_2026.txt
+2026-04-15 05:00:26,768 - INFO - Generated metadata file: data/processing_metadata_15_04_2026.json
+2026-04-15 05:00:26,769 - INFO - Validated metadata JSON structure: 5 keys
+2026-04-15 05:00:26,769 - INFO - Corrected dataset saved to data/correction_differences_onemap_15042026.csv
+2026-04-15 05:00:26,769 - INFO - ============================================================
+2026-04-15 05:00:26,769 - INFO - ENHANCED CORRECTION SUMMARY
+2026-04-15 05:00:26,769 - INFO - ============================================================
+2026-04-15 05:00:26,769 - INFO - Original records: 16
+2026-04-15 05:00:26,769 - INFO - Excluded records: 1 (6.25%)
+2026-04-15 05:00:26,769 - INFO - Corrected records: 15
+2026-04-15 05:00:26,769 - INFO - Duplicates removed: 0
+2026-04-15 05:00:26,770 - INFO - Net records reduction: 1 (6.25%)
+2026-04-15 05:00:26,770 - INFO - Residential buildings: 6 (40.00%)
+2026-04-15 05:00:26,770 - INFO - Non-residential buildings: 9 (60.00%)
+2026-04-15 05:00:26,770 - INFO - ============================================================
+2026-04-15 05:00:26,770 - INFO - Enhanced correction process completed in 0.02 seconds
+2026-04-15 05:00:26,770 - INFO - ✅ Enhanced correction process completed successfully!
