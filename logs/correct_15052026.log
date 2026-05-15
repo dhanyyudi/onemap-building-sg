@@ -1,0 +1,36 @@
+2026-05-15 04:52:39,319 - INFO - Loading data from data/differences_onemap_15052026.csv
+2026-05-15 04:52:39,321 - INFO - Loaded 2 records
+2026-05-15 04:52:39,321 - INFO - Filtering out buildings under construction and temporary site offices...
+2026-05-15 04:52:39,322 - INFO - Excluded 0 buildings (under construction/temporary)
+2026-05-15 04:52:39,322 - INFO - Remaining records for processing: 2
+2026-05-15 04:52:39,323 - INFO - Found 0 unique postal codes with duplicates
+2026-05-15 04:52:39,323 - INFO - Total records with duplicate postal codes: 0
+2026-05-15 04:52:39,323 - INFO - Starting deduplication process...
+2026-05-15 04:52:39,323 - INFO - Calculating parent building scores...
+2026-05-15 04:52:39,326 - INFO - Added 2 non-duplicate records to result
+2026-05-15 04:52:39,326 - INFO - Selected 0 parent buildings from duplicate groups
+2026-05-15 04:52:39,326 - INFO - Removed 0 duplicate records
+2026-05-15 04:52:39,326 - INFO - Total records in deduplicated dataset: 2
+2026-05-15 04:52:39,326 - INFO - Applying naming conventions...
+2026-05-15 04:52:39,328 - INFO - Classified buildings: 1 residential, 1 non-residential
+2026-05-15 04:52:39,329 - INFO - Naming conventions applied successfully
+2026-05-15 04:52:39,329 - INFO - Generating summary files for Slack integration...
+2026-05-15 04:52:39,332 - INFO - Generated changes summary: data/building_changes_summary_15_05_2026.csv
+2026-05-15 04:52:39,333 - INFO - Generated statistics summary: data/processing_statistics_15_05_2026.csv
+2026-05-15 04:52:39,333 - INFO - Generated text summary: data/processing_summary_15_05_2026.txt
+2026-05-15 04:52:39,333 - INFO - Generated metadata file: data/processing_metadata_15_05_2026.json
+2026-05-15 04:52:39,333 - INFO - Validated metadata JSON structure: 5 keys
+2026-05-15 04:52:39,334 - INFO - Corrected dataset saved to data/correction_differences_onemap_15052026.csv
+2026-05-15 04:52:39,334 - INFO - ============================================================
+2026-05-15 04:52:39,334 - INFO - ENHANCED CORRECTION SUMMARY
+2026-05-15 04:52:39,334 - INFO - ============================================================
+2026-05-15 04:52:39,334 - INFO - Original records: 2
+2026-05-15 04:52:39,334 - INFO - Excluded records: 0 (0.00%)
+2026-05-15 04:52:39,334 - INFO - Corrected records: 2
+2026-05-15 04:52:39,334 - INFO - Duplicates removed: 0
+2026-05-15 04:52:39,334 - INFO - Net records reduction: 0 (0.00%)
+2026-05-15 04:52:39,334 - INFO - Residential buildings: 1 (50.00%)
+2026-05-15 04:52:39,334 - INFO - Non-residential buildings: 1 (50.00%)
+2026-05-15 04:52:39,334 - INFO - ============================================================
+2026-05-15 04:52:39,334 - INFO - Enhanced correction process completed in 0.02 seconds
+2026-05-15 04:52:39,334 - INFO - ✅ Enhanced correction process completed successfully!

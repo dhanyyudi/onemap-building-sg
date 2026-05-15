@@ -1,0 +1,38 @@
+2026-05-15 04:52:38,438 - INFO - Loading previous data from data/onemap_31122025.csv
+2026-05-15 04:52:38,559 - INFO - Previous dataset: 141669 records
+2026-05-15 04:52:38,559 - INFO - Loading current data from data/onemap_15052026.csv
+2026-05-15 04:52:38,560 - INFO - Current dataset: 51 records
+2026-05-15 04:52:38,588 - INFO - Comparing datasets to identify differences...
+2026-05-15 04:52:38,625 - INFO - Found 0 new buildings
+2026-05-15 04:52:38,626 - INFO - Found 48 buildings in both datasets
+/home/runner/work/onemap-building-sg/onemap-building-sg/scripts/onemap_building_compare.py:183: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  changes = pd.concat([changes, pd.DataFrame([row_data])], ignore_index=True)
+2026-05-15 04:52:38,962 - INFO - Total differences found: 2
+2026-05-15 04:52:38,962 - INFO -   - New buildings: 0
+2026-05-15 04:52:38,962 - INFO -   - Name changes: 2
+2026-05-15 04:52:38,962 - INFO -   - Location changes: 0 (threshold: 300.0 meters)
+2026-05-15 04:52:38,965 - INFO - Differences saved to data/differences_onemap_15052026.csv
+2026-05-15 04:52:38,965 - INFO - 
+==================================================
+ONEMAP BUILDING DATA COMPARISON REPORT
+==================================================
+Previous dataset: data/onemap_31122025.csv
+Current dataset: data/onemap_15052026.csv
+Differences output: data/differences_onemap_15052026.csv
+
+STATISTICS
+--------------------------------------------------
+Previous dataset records: 141669
+Current dataset records: 51
+Total differences found: 2
+  - New buildings: 0
+  - Name changes: 2
+  - Location changes: 0 (distance > 300.0 meters)
+
+SUMMARY
+--------------------------------------------------
+Net change in records: -141618 (-99.96%)
+
+Report generated on: 2026-05-15 04:52:38
+==================================================
+2026-05-15 04:52:38,965 - INFO - Report saved to data/differences_onemap_15052026_report.txt
